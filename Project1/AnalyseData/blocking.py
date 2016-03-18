@@ -1,10 +1,16 @@
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
 def readData(filename):
-    energies = np.loadtxt("Data/%s" %filename)
-    return energies
+    
+    infile = open("Data/%s" %filename, 'r')
+    energies = []
+    
+    for line in infile:
+        energies.append(float(line))
+    
+    infile.close()
+    return np.asarray(energies)
     
 def blocking(energies, nBlocks, blockSize):
     
@@ -51,4 +57,3 @@ if __name__ == "__main__":
     plt.title("N=%i" %N)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
     plt.show()
-    

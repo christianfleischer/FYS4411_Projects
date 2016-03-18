@@ -26,7 +26,7 @@ int main(/*int nargs, char* args[]*/) {
 
     int numberOfDimensions  = 3;
     int numberOfParticles   = 10;
-    int numberOfSteps       = (int) 1e4;    // Monte Carlo cycles
+    int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
     double alpha            = 0.5;          // Variational parameter.
     double beta             = 2.82843;      // Variational parameter.
@@ -35,7 +35,7 @@ int main(/*int nargs, char* args[]*/) {
     double stepLength       = 0.1;          // Metropolis step length.
     double equilibration    = 0.1;          // Amount of the total steps used for equilibration.
     double dt               = 0.01;         // Time step for importance sampling.
-    bool analyticalKinetic  = false;
+    bool analyticalKinetic  = true;
     bool importanceSampling = false;
     bool repulsion          = true;         // Switch for interacting system or not.
     bool saveEnergies       = false;
