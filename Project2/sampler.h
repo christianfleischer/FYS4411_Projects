@@ -4,15 +4,22 @@ class Sampler {
 public:
     Sampler(class System* system);
     void setNumberOfMetropolisSteps(int steps);
+    void setEnergy(double energy);
+    void setVariance(double variance);
+    void setAcceptanceRate(double acceptanceRate);
+    void setMeanDistance(double meanDistance);
     void sample(bool acceptedStep, bool saveEnergies, bool savePositions);
     void printOutputToTerminal();
     void computeAverages();
     void saveToFile(double localEnergy, bool saveEnergies, bool savePositions);
-    double getEnergy()              { return m_energy; }
+    double getEnergy()                   { return m_energy; }
     double getWaveFuncDerivativeAlpha()  { return m_waveFuncDerivativeAlpha; }
     double getWaveFuncEnergyAlpha()      { return m_waveFuncEnergyAlpha; }
-    double getWaveFuncDerivativeBeta()  { return m_waveFuncDerivativeBeta; }
-    double getWaveFuncEnergyBeta()      { return m_waveFuncEnergyBeta; }
+    double getWaveFuncDerivativeBeta()   { return m_waveFuncDerivativeBeta; }
+    double getWaveFuncEnergyBeta()       { return m_waveFuncEnergyBeta; }
+    double getMeanDistance()             { return m_meanDistance; }
+    double getVariance()                 { return m_variance; }
+    double getAcceptanceRate()           { return m_acceptanceRate; }
 
 private:
     int     m_numberOfMetropolisSteps = 0;
@@ -32,5 +39,7 @@ private:
     double  m_waveFuncEnergyBeta = 0;
     double  m_cumulativeWFuncDerivativeBeta = 0;
     double  m_cumulativeWFuncEnergyBeta = 0;
+    double  m_cumulativeDistance = 0;
+    double  m_meanDistance = 0;
     class System* m_system = nullptr;
 };

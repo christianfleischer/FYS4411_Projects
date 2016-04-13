@@ -9,12 +9,12 @@ using namespace std;
 
 RandomUniform::RandomUniform(System*    system,
                              int        numberOfDimensions,
-                             int        numberOfParticles/*, int my_rank*/)  :
+                             int        numberOfParticles, int my_rank)  :
         InitialState(system) {
     assert(numberOfDimensions > 0 && numberOfParticles > 0);
     m_numberOfDimensions = numberOfDimensions;
     m_numberOfParticles  = numberOfParticles;
-    //m_my_rank            = my_rank;
+    m_my_rank            = my_rank;
 
     /* The Initial State class is in charge of everything to do with the
      * initialization of the system; this includes determining the number of
@@ -28,7 +28,7 @@ RandomUniform::RandomUniform(System*    system,
 
 void RandomUniform::setupInitialState() {
 
-    long idum = -1;//*m_my_rank;
+    long idum = -1-m_my_rank;
     Random::setSeed(idum);
 
     // Create random positions for all particles:

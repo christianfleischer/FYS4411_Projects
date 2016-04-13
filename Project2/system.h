@@ -18,6 +18,9 @@ public:
     void setHamiltonian             (class Hamiltonian* hamiltonian);
     void setWaveFunction            (class WaveFunction* waveFunction);
     void setInitialState            (class InitialState* initialState);
+    void setNumberOfMetropolisSteps (int numberOfMetropolisSteps);
+    void setMyRank                  (int my_rank);
+    void setComputationTime         (double computationTime);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }
     class Sampler*                  getSampler()        { return m_sampler; }
@@ -26,6 +29,7 @@ public:
     int getNumberOfParticles()          { return m_numberOfParticles; }
     int getNumberOfDimensions()         { return m_numberOfDimensions; }
     int getNumberOfMetropolisSteps()    { return m_numberOfMetropolisSteps; }
+    int getMyRank()                     { return m_my_rank; }
     double getEquilibrationFraction()   { return m_equilibrationFraction; }
     double getComputationTime()         { return m_computationTime; }
 
@@ -33,6 +37,7 @@ private:
     int                             m_numberOfParticles = 0;
     int                             m_numberOfDimensions = 0;
     int                             m_numberOfMetropolisSteps = 0;
+    int                             m_my_rank = 0;
     double                          m_equilibrationFraction = 0.0;
     double                          m_stepLength = 0.1;
     double                          m_dt = 0.01;

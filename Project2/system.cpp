@@ -139,7 +139,7 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
     for (int i=0; i < numberOfMetropolisSteps; i++) {
 
         // Update progress
-        if (showProgress) {
+        if (showProgress && m_my_rank == 0) {
             if (i%percent==0){
                 progress += 1;
                 cout << progress << "%" << "\n\033[F";
@@ -169,7 +169,7 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
 
     // Compute final expectation values
     m_sampler->computeAverages();
-    if (printToTerminal) m_sampler->printOutputToTerminal();
+    //if (printToTerminal) m_sampler->printOutputToTerminal();
 }
 
 void System::setNumberOfParticles(int numberOfParticles) {
@@ -207,4 +207,14 @@ void System::setInitialState(InitialState* initialState) {
     m_initialState = initialState;
 }
 
+void System::setNumberOfMetropolisSteps(int numberOfMetropolisSteps) {
+    m_numberOfMetropolisSteps = numberOfMetropolisSteps;
+}
 
+void System::setMyRank(int my_rank) {
+    m_my_rank = my_rank;
+}
+
+void System::setComputationTime(double computationTime) {
+    m_computationTime = computationTime;
+}

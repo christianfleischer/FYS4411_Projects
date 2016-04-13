@@ -19,19 +19,22 @@
 using namespace std;
 
 
-int main(/*int nargs, char* args[]*/) {
+int main(int nargs, char* args[]) {
 
-//    int numprocs, my_rank;
-//    MPI_Init(&nargs, &args);
-//    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-//    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    int numprocs, my_rank;
+    double total_e, total_variance, total_acceptanceRate, final_mean_distance;
+    double  time_start, time_end, total_time;
+    MPI_Init(&nargs, &args);
+    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+    time_start = MPI_Wtime();
 
     int numberOfDimensions  = 2;
     int numberOfParticles   = 2;
     int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
-    double alpha            = 0.7;          // Variational parameter.
-    double beta             = 2.82843;      // Variational parameter.
+    double alpha            = 0.737503;          // Variational parameter.
+    double beta             = 0.506579;      // Variational parameter.
     double gamma            = 2.82843;
     double a                = 0.0043;       // Hard core boson diameter.
     double stepLength       = 0.1;          // Metropolis step length.
@@ -48,7 +51,7 @@ int main(/*int nargs, char* args[]*/) {
     bool printToTerminal    = true;
     bool quantumDots        = true;
 
-    int num_my_cycles = numberOfSteps;// /numprocs;
+    int num_my_cycles = numberOfSteps/numprocs;
 
 //    cout << "  -- Settings -- " << boolalpha << endl;
 //    cout << " Analytical Kinetic : " << analyticalKinetic << endl;
@@ -73,23 +76,44 @@ int main(/*int nargs, char* args[]*/) {
         }
     }
     // RandomUniform creates a random initial state
-    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles/*, my_rank*/));
+    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, my_rank));
     system->setEquilibrationFraction    (equilibration);
     system->setStepLength               (stepLength);
     system->setTimeStep                 (dt);
+    system->setMyRank                   (my_rank);
     // Start Monte Carlo simulation
     system->runMetropolisSteps          (num_my_cycles, importanceSampling, saveEnergies,
                                          savePositions, showProgress, printToTerminal);
 
-//    double e = system->getSampler()->getEnergy();
-//    double total_e = 0;
-//    MPI_Reduce(&e, &total_e, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-//    if (my_rank == 0){
-//        total_e /= numprocs;
-//        cout << total_e << endl;
-//    }
-//    MPI_Finalize();
+    double e = system->getSampler()->getEnergy();
+    double variance = system->getSampler()->getVariance();
+    double acceptanceRate = system->getSampler()->getAcceptanceRate();
+    double mean_distance = system->getSampler()->getMeanDistance();
 
+    MPI_Reduce(&e, &total_e, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&variance, &total_variance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&acceptanceRate, &total_acceptanceRate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&mean_distance, &final_mean_distance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    time_end = MPI_Wtime();
+    total_time = time_end-time_start;
+
+    if (my_rank == 0){
+        total_e /= numprocs;
+        total_variance /= numprocs;
+        total_acceptanceRate /= numprocs;
+        final_mean_distance /= numprocs;
+        system->setNumberOfMetropolisSteps(numberOfSteps);
+        system->setComputationTime(total_time);
+        system->getSampler()->setEnergy(total_e);
+        system->getSampler()->setVariance(total_variance);
+        system->getSampler()->setAcceptanceRate(total_acceptanceRate);
+        system->getSampler()->setMeanDistance(final_mean_distance);
+        system->getSampler()->printOutputToTerminal();
+    }
+    MPI_Finalize();
+
+    /*
     // Steepest descent:
     cout << "Optimizing alpha using steepest descent:" << endl;
     int maxIterations             = 100;
@@ -116,7 +140,7 @@ int main(/*int nargs, char* args[]*/) {
     steepestDescent = new SteepestDescent(system, stepLengthSD);
     steepestDescent->obtainOptimalParameter(initialBeta, parameterBeta, tol, maxIterations,
                                             numberOfStepsSD, importanceSamplingSD);
-
+    */
 
     return 0;
 }

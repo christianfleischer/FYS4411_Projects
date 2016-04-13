@@ -19,6 +19,22 @@ void Sampler::setNumberOfMetropolisSteps(int steps) {
     m_numberOfMetropolisSteps = steps;
 }
 
+void Sampler::setEnergy(double energy) {
+    m_energy = energy;
+}
+
+void Sampler::setVariance(double variance) {
+    m_variance = variance;
+}
+
+void Sampler::setAcceptanceRate(double acceptanceRate) {
+    m_acceptanceRate = acceptanceRate;
+}
+
+void Sampler::setMeanDistance(double meanDistance) {
+    m_meanDistance = meanDistance;
+}
+
 void Sampler::sample(bool acceptedStep, bool saveEnergies, bool savePositions) {
     // Make sure the sampling variable(s) are initialized at the first step.
     if (m_stepNumber == 0) {
@@ -39,8 +55,23 @@ void Sampler::sample(bool acceptedStep, bool saveEnergies, bool savePositions) {
     m_cumulativeEnergy  += localEnergy;
     m_cumulativeSquaredEnergy += localEnergy*localEnergy;
 
-    // Sample things needed for the steepest descent method:
     std::vector<Particle*> particles = m_system->getParticles();
+
+    // Sample mean distance
+    double r12 = 0;
+    int numberOfParticles = m_system->getNumberOfParticles();
+    int numberOfDimensions = m_system->getNumberOfDimensions();
+    if (numberOfParticles == 2){
+        std::vector<double> r1 = particles[0]->getPosition();
+        std::vector<double> r2 = particles[1]->getPosition();
+        for (int i=1; i < numberOfDimensions; i++){
+            r12 += (r1[i]-r2[i])*(r1[i]-r2[i]);
+        }
+    }
+    r12 = sqrt(r12);
+    m_cumulativeDistance += r12;
+
+    // Sample things needed for the steepest descent method:
     double waveFunction = m_system->getWaveFunction()->evaluate(particles);
 
     double waveFuncDerivativeAlpha = m_system->getWaveFunction()->computeDerivativeWrtAlpha(particles);
@@ -86,6 +117,7 @@ void Sampler::printOutputToTerminal() {
     cout << " Energy : " << m_energy << endl;
     cout << " Variance : " << m_variance << endl;
     cout << " Acceptance Rate : " << m_acceptanceRate << endl;
+    if (m_meanDistance != 0) cout << " Mean Distance : " << m_meanDistance << endl;
     cout << endl;
     cout << "Computation Time : " << ct << endl;
     cout << endl;
@@ -107,6 +139,8 @@ void Sampler::computeAverages() {
     m_waveFuncEnergyBeta = m_cumulativeWFuncEnergyBeta / (double) m_stepNumber;
 
     m_acceptanceRate = m_cumulativeAcceptedSteps / (double) m_stepNumber;
+
+    m_meanDistance = m_cumulativeDistance / (double) m_stepNumber;
 }
 
 void Sampler::saveToFile(double localEnergy, bool saveEnergies, bool savePositions){
