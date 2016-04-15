@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <iostream>
 
 class System {
 public:
@@ -21,6 +22,7 @@ public:
     void setNumberOfMetropolisSteps (int numberOfMetropolisSteps);
     void setMyRank                  (int my_rank);
     void setComputationTime         (double computationTime);
+    void setSaveEnergies            (bool saveEnergies);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }
     class Sampler*                  getSampler()        { return m_sampler; }
@@ -32,6 +34,8 @@ public:
     int getMyRank()                     { return m_my_rank; }
     double getEquilibrationFraction()   { return m_equilibrationFraction; }
     double getComputationTime()         { return m_computationTime; }
+    bool getSaveEnergies()              { return m_saveEnergies; }
+    FILE* getEnergiesFile()             { return m_outfileE; }
 
 private:
     int                             m_numberOfParticles = 0;
@@ -47,5 +51,7 @@ private:
     class InitialState*             m_initialState = nullptr;
     class Sampler*                  m_sampler = nullptr;
     std::vector<class Particle*>    m_particles = std::vector<class Particle*>();
+    bool                            m_saveEnergies = false;
+    FILE*                           m_outfileE;
 };
 

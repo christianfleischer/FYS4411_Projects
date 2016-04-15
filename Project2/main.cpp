@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "system.h"
 #include "sampler.h"
 #include "particle.h"
@@ -23,7 +24,8 @@ int main(int nargs, char* args[]) {
 
     int numprocs, my_rank;
     double total_e, total_variance, total_acceptanceRate, final_mean_distance;
-    double  time_start, time_end, total_time;
+    double time_start, time_end, total_time;
+
     MPI_Init(&nargs, &args);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -45,7 +47,7 @@ int main(int nargs, char* args[]) {
     bool analyticalKinetic  = true;
     bool importanceSampling = true;
     bool repulsion          = false;         // Switch for interacting system or not.
-    bool saveEnergies       = false;
+    bool saveEnergies       = true;
     bool savePositions      = false;
     bool showProgress       = true;
     bool printToTerminal    = true;
@@ -81,6 +83,7 @@ int main(int nargs, char* args[]) {
     system->setStepLength               (stepLength);
     system->setTimeStep                 (dt);
     system->setMyRank                   (my_rank);
+    system->setSaveEnergies             (saveEnergies);
     // Start Monte Carlo simulation
     system->runMetropolisSteps          (num_my_cycles, importanceSampling, saveEnergies,
                                          savePositions, showProgress, printToTerminal);
@@ -111,7 +114,22 @@ int main(int nargs, char* args[]) {
         system->getSampler()->setMeanDistance(final_mean_distance);
         system->getSampler()->printOutputToTerminal();
     }
+    if (saveEnergies) fclose(system->getEnergiesFile());
     MPI_Finalize();
+
+    if (saveEnergies){
+        std::ofstream outfile("energies.dat", std::ios_base::binary);
+        for (int i=0; i < numprocs; i++){
+            char nodeFileName[100];
+            sprintf(nodeFileName, "energiesNode%i.dat", i);
+            std::ifstream nodeFile(nodeFileName, std::ios_base::binary);
+
+            outfile << nodeFile.rdbuf();
+            nodeFile.close();
+            remove(nodeFileName);
+        }
+        outfile.close();
+    }
 
     /*
     // Steepest descent:

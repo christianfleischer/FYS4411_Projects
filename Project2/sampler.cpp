@@ -144,18 +144,21 @@ void Sampler::computeAverages() {
 }
 
 void Sampler::saveToFile(double localEnergy, bool saveEnergies, bool savePositions){
-    if (saveEnergies){
-        if (m_stepNumber == 0) system("rm energies.dat");
+    if (m_system->getSaveEnergies()){
+        //if (m_stepNumber == 0 && m_system->getMyRank() == 0) system("rm energies.dat");
 
-        FILE *outfile = fopen("energies.dat", "a");
-        fprintf(outfile, "%f\n", localEnergy);
-        fclose(outfile);
+        //FILE *outfile = fopen("energies.dat", "ab");
+        //char filename[100];
+        //sprintf(filename, "energies%i.dat", m_system->getMyRank());
+        //FILE *outfile = fopen(filename, "ab");
+        fprintf(m_system->getEnergiesFile(), "%f\n", localEnergy);
+        //fclose(outfile);
     }
 
     if (savePositions){
-        if (m_stepNumber == 0) system("rm positions.dat");
+        if (m_stepNumber == 0 && m_system->getMyRank() == 0) system("rm positions.dat");
 
-        FILE *outfile = fopen("positions.dat", "a");
+        FILE *outfile = fopen("positions.dat", "ab");
         std::vector<Particle*> particles = m_system->getParticles();
         int numberOfParticles = m_system->getNumberOfParticles();
         int numberOfDimensions = m_system->getNumberOfDimensions();

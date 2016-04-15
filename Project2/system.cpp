@@ -7,6 +7,7 @@
 #include "InitialStates/initialstate.h"
 #include "Math/random.h"
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <time.h>
 
@@ -158,7 +159,7 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
          * are equilibration steps; m_equilibrationFraction.
          */
 
-        if (i>equilibrationSteps){
+        if (i>=equilibrationSteps){
             // Sample energy etc.
             m_sampler->sample(acceptedStep, saveEnergies, savePositions);
         }
@@ -218,3 +219,21 @@ void System::setMyRank(int my_rank) {
 void System::setComputationTime(double computationTime) {
     m_computationTime = computationTime;
 }
+
+void System::setSaveEnergies(bool saveEnergies) {
+    m_saveEnergies = saveEnergies;
+    if (saveEnergies){
+        if (m_my_rank == 0){
+            system("rm energies.dat");
+        }
+        char outfileName[100];
+        char removeCommand[100];
+        sprintf(outfileName, "energiesNode%i.dat", m_my_rank);
+        //sprintf(removeCommand, "rm %s", outfileName);
+        //system(removeCommand);
+        m_outfileE = fopen(outfileName, "ab");
+    }
+}
+
+
+
