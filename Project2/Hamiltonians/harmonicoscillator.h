@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_HARMONICOSCILLATOR_H
+#define PROJECT2_HARMONICOSCILLATOR_H
 #include "hamiltonian.h"
 #include <vector>
 
@@ -11,3 +12,4 @@ private:
     double m_omega = 0;
 };
 
+#endif // PROJECT2_HARMONICOSCILLATOR_H

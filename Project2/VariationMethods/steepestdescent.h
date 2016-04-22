@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_STEEPESTDESCENT_H
+#define PROJECT2_STEEPESTDESCENT_H
 #include "iostream"
 
 class SteepestDescent {
@@ -11,3 +12,5 @@ private:
     double m_stepLengthSD = 0;
     class System* m_system = nullptr;
 };
+
+#endif // PROJECT2_STEEPESTDESCENT_H

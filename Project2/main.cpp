@@ -23,20 +23,20 @@ using namespace std;
 int main(int nargs, char* args[]) {
 
     int numprocs, my_rank;
-    double total_e, total_variance, total_acceptanceRate, final_mean_distance;
-    double time_start, time_end, total_time;
+    double totalE, totalVariance, totalAcceptanceRate, finalMeanDistance;
+    double timeStart, timeEnd, totalTime;
 
     MPI_Init(&nargs, &args);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    time_start = MPI_Wtime();
+    timeStart = MPI_Wtime();
 
     int numberOfDimensions  = 2;
     int numberOfParticles   = 2;
     int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
-    double alpha            = 0.737503;          // Variational parameter.
-    double beta             = 0.506579;      // Variational parameter.
+    double alpha            = 0.737505;//0.7;          // Variational parameter.
+    double beta             = 0.506577;//2.82843;      // Variational parameter.
     double gamma            = 2.82843;
     double a                = 0.0043;       // Hard core boson diameter.
     double stepLength       = 0.1;          // Metropolis step length.
@@ -45,7 +45,7 @@ int main(int nargs, char* args[]) {
     double aElectrons       = 1; //1./3
     double C                = 1;            // Norm constant.
     bool analyticalKinetic  = true;
-    bool importanceSampling = true;
+    bool importanceSampling = false;
     bool repulsion          = false;         // Switch for interacting system or not.
     bool saveEnergies       = true;
     bool savePositions      = false;
@@ -53,7 +53,7 @@ int main(int nargs, char* args[]) {
     bool printToTerminal    = true;
     bool quantumDots        = true;
 
-    int num_my_cycles = numberOfSteps/numprocs;
+    int numMyCycles = numberOfSteps/numprocs;
 
 //    cout << "  -- Settings -- " << boolalpha << endl;
 //    cout << " Analytical Kinetic : " << analyticalKinetic << endl;
@@ -83,82 +83,17 @@ int main(int nargs, char* args[]) {
     system->setStepLength               (stepLength);
     system->setTimeStep                 (dt);
     system->setMyRank                   (my_rank);
+    // Optimize parameters
+    //system->optimizeParameters          (system);
     system->setSaveEnergies             (saveEnergies);
+    system->setSavePositions            (savePositions);
     // Start Monte Carlo simulation
-    system->runMetropolisSteps          (num_my_cycles, importanceSampling, saveEnergies,
-                                         savePositions, showProgress, printToTerminal);
-
-    double e = system->getSampler()->getEnergy();
-    double variance = system->getSampler()->getVariance();
-    double acceptanceRate = system->getSampler()->getAcceptanceRate();
-    double mean_distance = system->getSampler()->getMeanDistance();
-
-    MPI_Reduce(&e, &total_e, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&variance, &total_variance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&acceptanceRate, &total_acceptanceRate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&mean_distance, &final_mean_distance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    time_end = MPI_Wtime();
-    total_time = time_end-time_start;
-
-    if (my_rank == 0){
-        total_e /= numprocs;
-        total_variance /= numprocs;
-        total_acceptanceRate /= numprocs;
-        final_mean_distance /= numprocs;
-        system->setNumberOfMetropolisSteps(numberOfSteps);
-        system->setComputationTime(total_time);
-        system->getSampler()->setEnergy(total_e);
-        system->getSampler()->setVariance(total_variance);
-        system->getSampler()->setAcceptanceRate(total_acceptanceRate);
-        system->getSampler()->setMeanDistance(final_mean_distance);
-        system->getSampler()->printOutputToTerminal();
-    }
-    if (saveEnergies) fclose(system->getEnergiesFile());
-    MPI_Finalize();
-
-    if (saveEnergies){
-        std::ofstream outfile("energies.dat", std::ios_base::binary);
-        for (int i=0; i < numprocs; i++){
-            char nodeFileName[100];
-            sprintf(nodeFileName, "energiesNode%i.dat", i);
-            std::ifstream nodeFile(nodeFileName, std::ios_base::binary);
-
-            outfile << nodeFile.rdbuf();
-            nodeFile.close();
-            remove(nodeFileName);
-        }
-        outfile.close();
-    }
-
-    /*
-    // Steepest descent:
-    cout << "Optimizing alpha using steepest descent:" << endl;
-    int maxIterations             = 100;
-    int numberOfStepsSD           = (int) 1e5;
-    double stepLengthSD           = 0.01;
-    double initialAlpha           = 0.7;
-    double tol                    = 1e-6;//0.001;
-    bool importanceSamplingSD     = false;
-    std::string parameterAlpha    = "alpha";
-
-    SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
-    steepestDescent->obtainOptimalParameter(initialAlpha, parameterAlpha, tol, maxIterations,
-                                            numberOfStepsSD, importanceSamplingSD);
-
-    cout << "Optimizing beta using steepest descent:" << endl;
-    maxIterations             = 100;
-    numberOfStepsSD           = (int) 1e5;
-    stepLengthSD              = 0.01;
-    double initialBeta        = 0.505;
-    tol                       = 1e-6;//0.001;
-    importanceSamplingSD      = false;
-    std::string parameterBeta = "beta";
-
-    steepestDescent = new SteepestDescent(system, stepLengthSD);
-    steepestDescent->obtainOptimalParameter(initialBeta, parameterBeta, tol, maxIterations,
-                                            numberOfStepsSD, importanceSamplingSD);
-    */
+    system->runMetropolisSteps          (numMyCycles, importanceSampling, showProgress, printToTerminal);
+    // Compute MPI averages etc.
+    system->MPI_CleanUp                 (totalE, totalVariance, totalAcceptanceRate, finalMeanDistance,
+                                         timeStart, timeEnd, totalTime, numprocs, numberOfSteps);
+    // Merge the files from the nodes into one data file
+    system->mergeOutputFiles            (numprocs);
 
     return 0;
 }

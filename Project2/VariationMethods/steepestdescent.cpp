@@ -30,7 +30,7 @@ void SteepestDescent::obtainOptimalParameter(double parameter, std::string param
         // Run Monte Carlo simulation to find expectation values
         m_system->getInitialState()->setupInitialState();
         m_system->getWaveFunction()->adjustParameter(parameter, parameterNumber);
-        m_system->runMetropolisSteps(numberOfMetropolisSteps, importanceSampling, false, false, false, false);
+        m_system->runMetropolisSteps(numberOfMetropolisSteps, importanceSampling, false, false);
 
         double derivative;  //derivative of local energy.
         // Expectation values needed to calculate derivative of local energy:
@@ -65,7 +65,7 @@ void SteepestDescent::obtainOptimalParameter(double parameter, std::string param
     else cout << "Optimal " << parameterName << ": " << parameter << endl;
 
     // Performing large MC simulation with optimal parameter:
-    m_system->getInitialState()->setupInitialState();
+    //m_system->getInitialState()->setupInitialState();
     m_system->getWaveFunction()->adjustParameter(parameter, parameterNumber);
-    m_system->runMetropolisSteps((int) 1e6, importanceSampling, false, false, true, true);
+    //m_system->runMetropolisSteps((int) 1e6, importanceSampling, true, true);
 }

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_REPULSIVEGAUSSIAN_H
+#define PROJECT2_SIMPLEGAUSSIAN_H
 #include "wavefunction.h"
 
 class RepulsiveGaussian : public WaveFunction {
@@ -13,3 +14,5 @@ public:
 private:
     double m_a = 0;
 };
+
+#endif // PROJECT2_SIMPLEGAUSSIAN_H

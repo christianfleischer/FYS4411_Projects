@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_PARTICLE_H
+#define PROJECT2_PARTICLE_H
 #include <vector>
 
 class Particle {
@@ -14,3 +15,4 @@ private:
     std::vector<double> m_position = std::vector<double>();
 };
 
+#endif // PROJECT2_PARTICLE_H

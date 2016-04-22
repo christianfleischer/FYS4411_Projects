@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_TWOELECTRONS_H
+#define PROJECT2_TWOELECTRONS_H
 #include "wavefunction.h"
 
 class TwoElectrons : public WaveFunction {
@@ -16,3 +17,4 @@ private:
     double m_C = 0;
 };
 
+#endif // PROJECT2_TWOELECTRONS_H

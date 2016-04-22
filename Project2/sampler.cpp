@@ -35,7 +35,7 @@ void Sampler::setMeanDistance(double meanDistance) {
     m_meanDistance = meanDistance;
 }
 
-void Sampler::sample(bool acceptedStep, bool saveEnergies, bool savePositions) {
+void Sampler::sample(bool acceptedStep) {
     // Make sure the sampling variable(s) are initialized at the first step.
     if (m_stepNumber == 0) {
         m_cumulativeEnergy =             0;
@@ -87,7 +87,7 @@ void Sampler::sample(bool acceptedStep, bool saveEnergies, bool savePositions) {
     // Sample whether the step is accepted or not in order to find total acceptance ratio
     m_cumulativeAcceptedSteps += acceptedStep;
 
-    saveToFile(localEnergy, saveEnergies, savePositions);
+    saveToFile(localEnergy);
     m_stepNumber++;
 }
 
@@ -143,7 +143,7 @@ void Sampler::computeAverages() {
     m_meanDistance = m_cumulativeDistance / (double) m_stepNumber;
 }
 
-void Sampler::saveToFile(double localEnergy, bool saveEnergies, bool savePositions){
+void Sampler::saveToFile(double localEnergy){
     if (m_system->getSaveEnergies()){
         //if (m_stepNumber == 0 && m_system->getMyRank() == 0) system("rm energies.dat");
 
@@ -155,10 +155,10 @@ void Sampler::saveToFile(double localEnergy, bool saveEnergies, bool savePositio
         //fclose(outfile);
     }
 
-    if (savePositions){
-        if (m_stepNumber == 0 && m_system->getMyRank() == 0) system("rm positions.dat");
+    if (m_system->getSavePositions()){
+        //if (m_stepNumber == 0 && m_system->getMyRank() == 0) system("rm positions.dat");
 
-        FILE *outfile = fopen("positions.dat", "ab");
+        FILE *outfile = m_system->getPositionsFile();
         std::vector<Particle*> particles = m_system->getParticles();
         int numberOfParticles = m_system->getNumberOfParticles();
         int numberOfDimensions = m_system->getNumberOfDimensions();
@@ -170,7 +170,7 @@ void Sampler::saveToFile(double localEnergy, bool saveEnergies, bool savePositio
             }
             fprintf(outfile, "\n");
         }
-        fclose(outfile);
+        //fclose(outfile);
     }
 }
 

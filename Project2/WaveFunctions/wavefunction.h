@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_WAVEFUNCTION_H
+#define PROJECT2_WAVEFUNCTION_H
 #include <vector>
 
 
@@ -20,3 +21,4 @@ protected:
     class System* m_system = nullptr;
 };
 
+#endif // PROJECT2_WAVEFUNCTION_H

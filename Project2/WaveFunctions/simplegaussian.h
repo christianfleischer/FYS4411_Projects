@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_SIMPLEGAUSSIAN_H
+#define PROJECT2_SIMPLEGAUSSIAN_H
 #include "wavefunction.h"
 
 class SimpleGaussian : public WaveFunction {
@@ -10,3 +11,5 @@ public:
     double computeDerivativeWrtBeta(std::vector<Particle *> particles);
     std::vector<double> computeDerivative(std::vector<class Particle*> particles);
 };
+
+#endif // PROJECT2_SIMPLEGAUSSIAN_H

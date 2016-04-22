@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_HAMILTONIAN_H
+#define PROJECT2_HAMILTONIAN_H
 #include <vector>
 
 class Hamiltonian {
@@ -13,3 +14,4 @@ protected:
     bool m_analyticalKinetic = false;
 };
 
+#endif // PROJECT2_HAMILTONIAN_H

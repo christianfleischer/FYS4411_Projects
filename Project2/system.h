@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_SYSTEM_H
+#define PROJECT2_SYSTEM_H
 #include <vector>
 #include <iostream>
 
@@ -7,8 +8,12 @@ public:
     bool metropolisStep             ();
     bool metropolisStepImpSampling  ();
     void runMetropolisSteps         (int numberOfMetropolisSteps, bool importanceSampling,
-                                     bool saveEnergies, bool savePositions, bool showProgress,
-                                     bool printToTerminal);
+                                     bool showProgress, bool printToTerminal);
+    void optimizeParameters         (System* system);
+    void MPI_CleanUp                (double totalE, double totalVariance, double totalAcceptanceRate,
+                                     double finalMeanDistance, double timeStart,
+                                     double timeEnd, double totalTime, int numprocs, int numberOfSteps);
+    void mergeOutputFiles           (int numprocs);
     double calculateGreensFunction  (int particle, std::vector<double> positionOld, std::vector<double> positionNew);
     std::vector<double> quantumForce(int particle);
     void setNumberOfParticles       (int numberOfParticles);
@@ -23,6 +28,7 @@ public:
     void setMyRank                  (int my_rank);
     void setComputationTime         (double computationTime);
     void setSaveEnergies            (bool saveEnergies);
+    void setSavePositions            (bool savePositions);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }
     class Sampler*                  getSampler()        { return m_sampler; }
@@ -36,6 +42,8 @@ public:
     double getComputationTime()         { return m_computationTime; }
     bool getSaveEnergies()              { return m_saveEnergies; }
     FILE* getEnergiesFile()             { return m_outfileE; }
+    bool getSavePositions()              { return m_savePositions; }
+    FILE* getPositionsFile()             { return m_outfileP; }
 
 private:
     int                             m_numberOfParticles = 0;
@@ -53,5 +61,8 @@ private:
     std::vector<class Particle*>    m_particles = std::vector<class Particle*>();
     bool                            m_saveEnergies = false;
     FILE*                           m_outfileE;
+    bool                            m_savePositions = false;
+    FILE*                           m_outfileP;
 };
 
+#endif // PROJECT2_SYSTEM_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_RANDOMUNIFORM_H
+#define PROJECT2_RANDOMUNIFORM_H
 #include "initialstate.h"
 
 class RandomUniform : public InitialState {
@@ -7,3 +8,4 @@ public:
     void setupInitialState();
 };
 
+#endif // PROJECT2_RANDOMUNIFORM_H

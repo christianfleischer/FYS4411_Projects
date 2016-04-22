@@ -5,11 +5,13 @@
 #include "WaveFunctions/wavefunction.h"
 #include "Hamiltonians/hamiltonian.h"
 #include "InitialStates/initialstate.h"
+#include "VariationMethods/steepestdescent.h"
 #include "Math/random.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <time.h>
+#include <mpi.h>
 
 using namespace std;
 
@@ -64,7 +66,7 @@ bool System::metropolisStepImpSampling(){
 
     // Change position of random particle
     for (int i=0; i < m_numberOfDimensions; i++){
-        positionChange[i] = Random::nextGaussian(0., sqrt(m_dt)); + D*m_dt*quantumForce(randomParticle)[i];
+        positionChange[i] = Random::nextGaussian(0., sqrt(m_dt)) + D*m_dt*quantumForce(randomParticle)[i];
         m_particles[randomParticle]->adjustPosition(positionChange[i], i);
     }
 
@@ -122,8 +124,7 @@ double System::calculateGreensFunction(int particle, std::vector<double> positio
 }
 
 void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSampling,
-                                bool saveEnergies, bool savePositions, bool showProgress,
-                                bool printToTerminal) {
+                                bool showProgress, bool printToTerminal) {
     // Initialize Monte Carlo simulation
     m_particles                 = m_initialState->getParticles();
     m_sampler                   = new Sampler(this);
@@ -161,7 +162,7 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
 
         if (i>=equilibrationSteps){
             // Sample energy etc.
-            m_sampler->sample(acceptedStep, saveEnergies, savePositions);
+            m_sampler->sample(acceptedStep);
         }
     }
 
@@ -170,7 +171,104 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
 
     // Compute final expectation values
     m_sampler->computeAverages();
-    //if (printToTerminal) m_sampler->printOutputToTerminal();
+    if (printToTerminal){;} //m_sampler->printOutputToTerminal();
+}
+
+void System::optimizeParameters(System* system) {
+    // Steepest descent:
+    int maxIterations             = 100;
+    int numberOfStepsSD           = (int) 1e5;
+    double stepLengthSD           = 0.01;
+    double initialAlpha           = 0.7;
+    double tol                    = 1e-6;//0.001;
+    bool importanceSamplingSD     = false;
+    std::string parameterAlpha    = "alpha";
+
+    if (m_my_rank == 0) {
+        cout << "Optimizing alpha using steepest descent:" << endl;
+        SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
+        steepestDescent->obtainOptimalParameter(initialAlpha, parameterAlpha, tol, maxIterations,
+                                            numberOfStepsSD, importanceSamplingSD);
+    }
+
+    maxIterations             = 100;
+    numberOfStepsSD           = (int) 1e5;
+    stepLengthSD              = 0.01;
+    double initialBeta        = 0.505;
+    tol                       = 1e-6;//0.001;
+    importanceSamplingSD      = false;
+    std::string parameterBeta = "beta";
+
+    if (m_my_rank == 0) {
+        cout << "Optimizing beta using steepest descent:" << endl;
+        SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
+        steepestDescent->obtainOptimalParameter(initialBeta, parameterBeta, tol, maxIterations,
+                                            numberOfStepsSD, importanceSamplingSD);
+    }
+}
+
+void System::MPI_CleanUp(double totalE, double totalVariance, double totalAcceptanceRate,
+                         double finalMeanDistance, double timeStart, double timeEnd,
+                         double totalTime, int numprocs, int numberOfSteps) {
+    double e = m_sampler->getEnergy();
+    double variance = m_sampler->getVariance();
+    double acceptanceRate = m_sampler->getAcceptanceRate();
+    double mean_distance = m_sampler->getMeanDistance();
+
+    MPI_Reduce(&e, &totalE, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&variance, &totalVariance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&acceptanceRate, &totalAcceptanceRate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&mean_distance, &finalMeanDistance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    timeEnd = MPI_Wtime();
+    totalTime = timeEnd-timeStart;
+
+    if (m_my_rank == 0){
+        totalE /= numprocs;
+        totalVariance /= numprocs;
+        totalAcceptanceRate /= numprocs;
+        finalMeanDistance /= numprocs;
+        setNumberOfMetropolisSteps(numberOfSteps);
+        setComputationTime(totalTime);
+        m_sampler->setEnergy(totalE);
+        m_sampler->setVariance(totalVariance);
+        m_sampler->setAcceptanceRate(totalAcceptanceRate);
+        m_sampler->setMeanDistance(finalMeanDistance);
+        m_sampler->printOutputToTerminal();
+    }
+    if (m_saveEnergies) fclose(m_outfileE);
+    if (m_savePositions) fclose(m_outfileP);
+    MPI_Finalize();
+}
+
+void System::mergeOutputFiles(int numprocs) {
+    if (m_saveEnergies){
+        std::ofstream outfile("energies.dat", std::ios_base::binary);
+        for (int i=0; i < numprocs; i++){
+            char nodeFileName[100];
+            sprintf(nodeFileName, "energiesNode%i.dat", i);
+            std::ifstream nodeFile(nodeFileName, std::ios_base::binary);
+
+            outfile << nodeFile.rdbuf();
+            nodeFile.close();
+            remove(nodeFileName);
+        }
+        outfile.close();
+    }
+
+    if (m_savePositions){
+        std::ofstream outfile("positions.dat", std::ios_base::binary);
+        for (int i=0; i < numprocs; i++){
+            char nodeFileName[100];
+            sprintf(nodeFileName, "positionsNode%i.dat", i);
+            std::ifstream nodeFile(nodeFileName, std::ios_base::binary);
+
+            outfile << nodeFile.rdbuf();
+            nodeFile.close();
+            remove(nodeFileName);
+        }
+        outfile.close();
+    }
 }
 
 void System::setNumberOfParticles(int numberOfParticles) {
@@ -227,7 +325,7 @@ void System::setSaveEnergies(bool saveEnergies) {
             system("rm energies.dat");
         }
         char outfileName[100];
-        char removeCommand[100];
+        //char removeCommand[100];
         sprintf(outfileName, "energiesNode%i.dat", m_my_rank);
         //sprintf(removeCommand, "rm %s", outfileName);
         //system(removeCommand);
@@ -235,5 +333,19 @@ void System::setSaveEnergies(bool saveEnergies) {
     }
 }
 
+void System::setSavePositions(bool savePositions) {
+    m_savePositions = savePositions;
+    if (savePositions){
+        if (m_my_rank == 0){
+            system("rm positions.dat");
+        }
+        char outfileName[100];
+        //char removeCommand[100];
+        sprintf(outfileName, "positionsNode%i.dat", m_my_rank);
+        //sprintf(removeCommand, "rm %s", outfileName);
+        //system(removeCommand);
+        m_outfileP = fopen(outfileName, "ab");
+    }
+}
 
 

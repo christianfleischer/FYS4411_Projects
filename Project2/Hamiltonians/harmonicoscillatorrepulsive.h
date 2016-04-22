@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_HARMONICOSCILLATORREPULSIVE_H
+#define PROJECT2_HARMONICOSCILLATORREPULSIVE_H
 #include "hamiltonian.h"
 #include <vector>
 
@@ -12,3 +13,5 @@ private:
     double m_a = 0;
     double m_gamma = 0;
 };
+
+#endif // PROJECT2_HARMONICOSCILLATORREPULSIVE_H

@@ -1,5 +1,5 @@
-#ifndef CONJUGATEGRADIENT_H
-#define CONJUGATEGRADIENT_H
+#ifndef PROJECT2_CONJUGATEGRADIENT_H
+#define PROJECT2_CONJUGATEGRADIENT_H
 
 class conjugategradient
 {
@@ -7,4 +7,4 @@ public:
     conjugategradient();
 };
 
-#endif // CONJUGATEGRADIENT_H
+#endif // PROJECT2_CONJUGATEGRADIENT_H

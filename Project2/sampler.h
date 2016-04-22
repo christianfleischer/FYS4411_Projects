@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_SAMPLER_H
+#define PROJECT2_SAMPLER_H
 
 class Sampler {
 public:
@@ -8,10 +9,10 @@ public:
     void setVariance(double variance);
     void setAcceptanceRate(double acceptanceRate);
     void setMeanDistance(double meanDistance);
-    void sample(bool acceptedStep, bool saveEnergies, bool savePositions);
+    void sample(bool acceptedStep);
     void printOutputToTerminal();
     void computeAverages();
-    void saveToFile(double localEnergy, bool saveEnergies, bool savePositions);
+    void saveToFile(double localEnergy);
     double getEnergy()                   { return m_energy; }
     double getWaveFuncDerivativeAlpha()  { return m_waveFuncDerivativeAlpha; }
     double getWaveFuncEnergyAlpha()      { return m_waveFuncEnergyAlpha; }
@@ -43,3 +44,5 @@ private:
     double  m_meanDistance = 0;
     class System* m_system = nullptr;
 };
+
+#endif // PROJECT2_SAMPLER_H

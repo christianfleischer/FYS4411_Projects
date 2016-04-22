@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROJECT2_INITIALSTATE_H
+#define PROJECT2_INITIALSTATE_H
 #include <vector>
 
 class InitialState {
@@ -15,3 +16,4 @@ protected:
     int m_my_rank            = 0;
 };
 
+#endif // PROJECT2_INITIALSTATE_H
