@@ -22,22 +22,16 @@ bool System::metropolisStep() {
      * at this new position with the one at the old position).
      */
 
-    // Evaluate the wave function for current positions
-    double waveFunctionOld = m_waveFunction->evaluate(m_particles);
-
     // Choose a random particle and change its position by a random amount creating a trial state
     int randomParticle = Random::nextInt(m_numberOfParticles);
     std::vector<double> positionChange(m_numberOfDimensions);
 
     for (int i=0; i<m_numberOfDimensions; i++){
         positionChange[i] = (Random::nextDouble()*2-1)*m_stepLength;
-        m_particles[randomParticle]->adjustPosition(positionChange[i], i);
     }
 
-    // Evaluate the wave function for the trial state
-    double waveFunctionNew = m_waveFunction->evaluate(m_particles);
     // Metropolis ratio
-    double qratio = waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
+    double qratio = m_waveFunction->computeMetropolisRatio(m_particles, randomParticle, positionChange);
 
     // Check if trial state is accepted
     if (Random::nextDouble() <= qratio){
@@ -59,19 +53,16 @@ bool System::metropolisStepImpSampling(){
     std::vector<double> positionChange(m_numberOfDimensions);
     double D = 0.5;
 
-    // Evaluate wave function for current state
-    double waveFunctionOld = m_waveFunction->evaluate(m_particles);
     // Keep old position for Greens function
     std::vector<double> positionOld = m_particles[randomParticle]->getPosition();
 
     // Change position of random particle
     for (int i=0; i < m_numberOfDimensions; i++){
         positionChange[i] = Random::nextGaussian(0., sqrt(m_dt)) + D*m_dt*quantumForce(randomParticle)[i];
-        m_particles[randomParticle]->adjustPosition(positionChange[i], i);
     }
 
-    // Evaluate wave function for trial state
-    double waveFunctionNew = m_waveFunction->evaluate(m_particles);
+    double qratio = m_waveFunction->computeMetropolisRatio(m_particles, randomParticle, positionChange);
+
     // Keep new position for Greens function
     std::vector<double> positionNew = m_particles[randomParticle]->getPosition();
 
@@ -84,7 +75,7 @@ bool System::metropolisStepImpSampling(){
 
     double GreensFunctionOld = calculateGreensFunction(randomParticle, positionOld, positionNew);
 
-    double qratio = (GreensFunctionNew*waveFunctionNew*waveFunctionNew) / (GreensFunctionOld*waveFunctionOld*waveFunctionOld);
+    qratio *= GreensFunctionNew / GreensFunctionOld;
 
     // If move is accepted give the random particle the new position, otherwise keep the old position
     if (Random::nextDouble() <= qratio){

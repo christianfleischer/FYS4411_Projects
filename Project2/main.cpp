@@ -7,6 +7,7 @@
 #include "WaveFunctions/simplegaussian.h"
 #include "WaveFunctions/repulsivegaussian.h"
 #include "WaveFunctions/twoelectrons.h"
+#include "WaveFunctions/manyelectrons.h"
 #include "Hamiltonians/hamiltonian.h"
 #include "Hamiltonians/harmonicoscillator.h"
 #include "Hamiltonians/harmonicoscillatorrepulsive.h"
@@ -45,9 +46,9 @@ int main(int nargs, char* args[]) {
     double aElectrons       = 1; //1./3
     double C                = 1;            // Norm constant.
     bool analyticalKinetic  = true;
-    bool importanceSampling = false;
+    bool importanceSampling = true;
     bool repulsion          = false;         // Switch for interacting system or not.
-    bool saveEnergies       = true;
+    bool saveEnergies       = false;
     bool savePositions      = false;
     bool showProgress       = true;
     bool printToTerminal    = true;
@@ -94,6 +95,9 @@ int main(int nargs, char* args[]) {
                                          timeStart, timeEnd, totalTime, numprocs, numberOfSteps);
     // Merge the files from the nodes into one data file
     system->mergeOutputFiles            (numprocs);
+
+    //ManyElectrons* manyelectrons = new ManyElectrons(system, 1, 1, 1, 1, 1);
+    //manyelectrons->setUpSlaterDet();
 
     return 0;
 }

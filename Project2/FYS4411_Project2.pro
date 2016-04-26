@@ -20,7 +20,10 @@ SOURCES += main.cpp \
     VariationMethods/steepestdescent.cpp \
     VariationMethods/conjugategradient.cpp \
     Hamiltonians/harmonicoscillatorelectrons.cpp \
-    WaveFunctions/twoelectrons.cpp
+    WaveFunctions/twoelectrons.cpp \
+    WaveFunctions/manyelectrons.cpp
+
+LIBS += -llapack -lblas -larmadillo
 
 HEADERS += \
     system.h \
@@ -38,7 +41,8 @@ HEADERS += \
     VariationMethods/steepestdescent.h \
     VariationMethods/conjugategradient.h \
     Hamiltonians/harmonicoscillatorelectrons.h \
-    WaveFunctions/twoelectrons.h
+    WaveFunctions/twoelectrons.h \
+    WaveFunctions/manyelectrons.h
 
 # MPI Settings
 QMAKE_CXX = mpicxx

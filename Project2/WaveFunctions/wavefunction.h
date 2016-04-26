@@ -13,6 +13,8 @@ public:
     virtual double computeDoubleDerivative(std::vector<class Particle*> particles) = 0;
     virtual double computeDerivativeWrtAlpha(std::vector<class Particle*> particles) = 0;
     virtual double computeDerivativeWrtBeta(std::vector<class Particle*> particles) = 0;
+    virtual double computeMetropolisRatio(std::vector<class Particle*> particles, int randomParticle,
+                                          std::vector<double> positionChange) = 0;
     virtual std::vector<double> computeDerivative(std::vector<class Particle*> particles) = 0;
 
 protected:
