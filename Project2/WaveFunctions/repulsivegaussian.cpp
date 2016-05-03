@@ -245,6 +245,9 @@ double RepulsiveGaussian::computeMetropolisRatio(std::vector<Particle *> particl
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
 }
 
+void RepulsiveGaussian::updateSlaterDet(int randomParticle) {
+
+}
 
 
 

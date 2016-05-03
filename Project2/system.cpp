@@ -35,6 +35,7 @@ bool System::metropolisStep() {
 
     // Check if trial state is accepted
     if (Random::nextDouble() <= qratio){
+        m_waveFunction->updateSlaterDet(randomParticle);
         return true;
     }
 
@@ -81,6 +82,7 @@ bool System::metropolisStepImpSampling(){
     if (Random::nextDouble() <= qratio){
         for (int i=0; i<m_numberOfDimensions; i++){
             m_particles[randomParticle]->adjustPosition(positionChange[i], i);
+            m_waveFunction->updateSlaterDet(randomParticle);
         }
         return true;
     }

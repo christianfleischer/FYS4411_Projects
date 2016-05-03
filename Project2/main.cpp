@@ -68,14 +68,18 @@ int main(int nargs, char* args[]) {
     system->setHamiltonian              (new HarmonicOscillatorRepulsive(system, omega, a, gamma, analyticalKinetic));
     system->setWaveFunction             (new RepulsiveGaussian(system, alpha, beta, a));
     }
-    if (!repulsion && !quantumDots){
+    if (!repulsion && !quantumDots) {
     system->setHamiltonian              (new HarmonicOscillator(system, omega, analyticalKinetic));
     system->setWaveFunction             (new SimpleGaussian(system, alpha));
     }
-    if (quantumDots){
-        if (numberOfParticles == 2){
+    if (quantumDots) {
+        if (numberOfParticles == 1) {
             system->setHamiltonian              (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic));
             system->setWaveFunction             (new TwoElectrons(system, alpha, beta, omega, aElectrons, C));
+        }
+        else {
+            system->setHamiltonian              (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic));
+            system->setWaveFunction             (new ManyElectrons(system, alpha, beta, omega, aElectrons, C));
         }
     }
     // RandomUniform creates a random initial state
@@ -97,7 +101,7 @@ int main(int nargs, char* args[]) {
     system->mergeOutputFiles            (numprocs);
 
     //ManyElectrons* manyelectrons = new ManyElectrons(system, 1, 1, 1, 1, 1);
-    //manyelectrons->setUpSlaterDet();
+    //cout << manyelectrons->computeHermitePolynomialDoubleDerivative(4, 2) << endl;
 
     return 0;
 }

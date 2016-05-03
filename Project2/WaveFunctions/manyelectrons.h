@@ -14,14 +14,21 @@ public:
     double computeMetropolisRatio(std::vector<Particle *> particles, int randomParticle,
                                   std::vector<double> positionChange);
     double computeHermitePolynomial(int nValue, double position);
+    double computeHermitePolynomialDerivative(int nValue, double position);
+    double computeHermitePolynomialDoubleDerivative(int nValue, double position);
     double evaluateSingleParticleWF(int nx, int ny, double x, double y);
+    double computeSPWFDoubleDerivative(int nx, int ny, double x, double y);
     std::vector<double> computeDerivative(std::vector<class Particle*> particles);
+    std::vector<double> computeSlaterGradient(std::vector<Particle *> particles);
+    std::vector<double> computeJastrowGradient(std::vector<Particle *> particles);
+    std::vector<double> computeSPWFDerivative(int nx, int ny, double x, double y);
     void setUpSlaterDet();
     void updateSlaterDet(int randomParticle);
 
 private:
     int m_numberOfParticles = 0;
     int m_halfNumberOfParticles = 0;
+    int m_k = 0;
     double m_omega = 0;
     double m_a = 0;
     double m_C = 0;

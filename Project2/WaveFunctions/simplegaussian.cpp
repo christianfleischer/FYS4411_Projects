@@ -139,3 +139,7 @@ double SimpleGaussian::computeMetropolisRatio(std::vector<Particle *> particles,
 
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
 }
+
+void SimpleGaussian::updateSlaterDet(int randomParticle) {
+
+}

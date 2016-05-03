@@ -203,3 +203,7 @@ double TwoElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
 
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
 }
+
+void TwoElectrons::updateSlaterDet(int randomParticle) {
+
+}
