@@ -34,7 +34,7 @@ int main(int nargs, char* args[]) {
 
     int numberOfDimensions  = 2;
     int numberOfParticles   = 2;
-    int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
+    int numberOfSteps       = (int) 1e5;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
     double alpha            = 0.737505;//0.7;          // Variational parameter.
     double beta             = 0.506577;//2.82843;      // Variational parameter.
@@ -63,6 +63,8 @@ int main(int nargs, char* args[]) {
 
     // Initiate System
     System* system = new System();
+    // RandomUniform creates a random initial state
+    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, my_rank));
     // Select which Hamiltonian and trial wave function to use (interacting or non-interacting)
     if (repulsion && !quantumDots) {
     system->setHamiltonian              (new HarmonicOscillatorRepulsive(system, omega, a, gamma, analyticalKinetic));
@@ -79,11 +81,9 @@ int main(int nargs, char* args[]) {
         }
         else {
             system->setHamiltonian              (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic));
-            system->setWaveFunction             (new ManyElectrons(system, alpha, beta, omega, aElectrons, C));
+            system->setWaveFunction             (new ManyElectrons(system, alpha, beta, omega, C));
         }
     }
-    // RandomUniform creates a random initial state
-    system->setInitialState             (new RandomUniform(system, numberOfDimensions, numberOfParticles, my_rank));
     system->setEquilibrationFraction    (equilibration);
     system->setStepLength               (stepLength);
     system->setTimeStep                 (dt);

@@ -48,7 +48,8 @@ double TwoElectrons::evaluate(std::vector<class Particle*> particles) {
     //return 0;
 }
 
-std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*> particles){
+std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*> particles,
+                                                    int randomParticle){
     //Calculates ∇ψ/ψ for the interacting wave function using the analytical expression.
 
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -207,3 +208,4 @@ double TwoElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
 void TwoElectrons::updateSlaterDet(int randomParticle) {
 
 }
+

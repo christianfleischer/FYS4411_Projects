@@ -11,7 +11,8 @@ public:
     double computeDerivativeWrtBeta(std::vector<Particle *> particles);
     double computeMetropolisRatio(std::vector<Particle *> particles, int randomParticle,
                                   std::vector<double> positionChange);
-    std::vector<double> computeDerivative(std::vector<class Particle*> particles);
+    std::vector<double> computeDerivative(std::vector<class Particle*> particles,
+                                          int randomParticle);
     void updateSlaterDet(int randomParticle);
 };
 

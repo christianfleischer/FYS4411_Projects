@@ -82,8 +82,8 @@ bool System::metropolisStepImpSampling(){
     if (Random::nextDouble() <= qratio){
         for (int i=0; i<m_numberOfDimensions; i++){
             m_particles[randomParticle]->adjustPosition(positionChange[i], i);
-            m_waveFunction->updateSlaterDet(randomParticle);
         }
+        m_waveFunction->updateSlaterDet(randomParticle);
         return true;
     }
 
@@ -96,7 +96,8 @@ std::vector<double> System::quantumForce(int particle){
     std::vector<double> qForce;
 
     for (int i=0; i < m_numberOfDimensions; i++){
-        qForce.push_back(2*m_waveFunction->computeDerivative(m_particles)[particle*m_numberOfDimensions + i]);
+        qForce.push_back(
+             2*m_waveFunction->computeDerivative(m_particles, particle)[particle*m_numberOfDimensions + i]);
     }
     return qForce;
 }
@@ -340,5 +341,4 @@ void System::setSavePositions(bool savePositions) {
         m_outfileP = fopen(outfileName, "ab");
     }
 }
-
 
