@@ -6,10 +6,12 @@
 #include "../particle.h"
 #include "../WaveFunctions/wavefunction.h"
 
-HarmonicOscillatorElectrons::HarmonicOscillatorElectrons(System* system, double omega, bool analyticalKinetic) :
+HarmonicOscillatorElectrons::HarmonicOscillatorElectrons(System* system, double omega,
+                                                         bool analyticalKinetic, bool repulsion) :
     Hamiltonian(system, analyticalKinetic) {
     assert(omega > 0);
     m_omega = omega;
+    m_repulsion = repulsion;
 }
 
 double HarmonicOscillatorElectrons::computeLocalEnergy(std::vector<Particle*> particles) {
@@ -32,7 +34,7 @@ double HarmonicOscillatorElectrons::computeLocalEnergy(std::vector<Particle*> pa
             double r_ijSquared = 0;
             std::vector<double> r_j = particles[j]->getPosition();
             for (int k=0; k < numberOfDimensions; k++){
-                r_ijSquared += (r_i[k] - r_j[k]) * (r_i[k] - r_j[k]);
+                    r_ijSquared += (r_i[k] - r_j[k]) * (r_i[k] - r_j[k]);
             }
 
             double r_ij = sqrt(r_ijSquared);

@@ -9,7 +9,7 @@ public:
     bool metropolisStepImpSampling  ();
     void runMetropolisSteps         (int numberOfMetropolisSteps, bool importanceSampling,
                                      bool showProgress, bool printToTerminal);
-    void optimizeParameters         (System* system);
+    void optimizeParameters         (System* system, double alpha, double beta);
     void MPI_CleanUp                (double totalE, double totalVariance, double totalAcceptanceRate,
                                      double finalMeanDistance, double timeStart,
                                      double timeEnd, double totalTime, int numprocs, int numberOfSteps);

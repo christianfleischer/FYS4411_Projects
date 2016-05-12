@@ -168,12 +168,12 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
     if (printToTerminal){;} //m_sampler->printOutputToTerminal();
 }
 
-void System::optimizeParameters(System* system) {
+void System::optimizeParameters(System* system, double alpha, double beta) {
     // Steepest descent:
     int maxIterations             = 100;
     int numberOfStepsSD           = (int) 1e5;
     double stepLengthSD           = 0.01;
-    double initialAlpha           = 0.7;
+    double initialAlpha           = alpha;//0.7;
     double tol                    = 1e-6;//0.001;
     bool importanceSamplingSD     = false;
     std::string parameterAlpha    = "alpha";
@@ -188,7 +188,7 @@ void System::optimizeParameters(System* system) {
     maxIterations             = 100;
     numberOfStepsSD           = (int) 1e5;
     stepLengthSD              = 0.01;
-    double initialBeta        = 0.505;
+    double initialBeta        = beta;//1.142;//0.505;
     tol                       = 1e-6;//0.001;
     importanceSamplingSD      = false;
     std::string parameterBeta = "beta";

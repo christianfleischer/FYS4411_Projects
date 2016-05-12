@@ -5,11 +5,12 @@
 
 class HarmonicOscillatorElectrons : public Hamiltonian {
 public:
-    HarmonicOscillatorElectrons(System* system, double omega, bool analyticalKinetic);
+    HarmonicOscillatorElectrons(System* system, double omega, bool analyticalKinetic, bool repulsion);
     double computeLocalEnergy(std::vector<Particle*> particles);
 
 private:
     double m_omega = 0;
+    bool m_repulsion = false;
 };
 
 #endif // PROJECT2_HARMONICOSCILLATORELECTRONS_H

@@ -37,7 +37,7 @@ int main(int nargs, char* args[]) {
     int numberOfSteps       = (int) 1e5;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
     double alpha            = 0.737505;//0.7;          // Variational parameter.
-    double beta             = 0.506577;//2.82843;      // Variational parameter.
+    double beta             = 0.364;//0.506577;//2.82843;      // Variational parameter.
     double gamma            = 2.82843;
     double a                = 0.0043;       // Hard core boson diameter.
     double stepLength       = 0.1;          // Metropolis step length.
@@ -76,12 +76,12 @@ int main(int nargs, char* args[]) {
     }
     if (quantumDots) {
         if (numberOfParticles == 1) {
-            system->setHamiltonian              (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic));
-            system->setWaveFunction             (new TwoElectrons(system, alpha, beta, omega, aElectrons, C));
+            system->setHamiltonian      (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic, repulsion));
+            system->setWaveFunction     (new TwoElectrons(system, alpha, beta, omega, aElectrons, C));
         }
         else {
-            system->setHamiltonian              (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic));
-            system->setWaveFunction             (new ManyElectrons(system, alpha, beta, omega, C));
+            system->setHamiltonian      (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic, repulsion));
+            system->setWaveFunction     (new ManyElectrons(system, alpha, beta, omega, C));
         }
     }
     system->setEquilibrationFraction    (equilibration);
@@ -89,7 +89,7 @@ int main(int nargs, char* args[]) {
     system->setTimeStep                 (dt);
     system->setMyRank                   (my_rank);
     // Optimize parameters
-    //system->optimizeParameters          (system);
+    //system->optimizeParameters          (system, alpha, beta);
     system->setSaveEnergies             (saveEnergies);
     system->setSavePositions            (savePositions);
     // Start Monte Carlo simulation
@@ -105,6 +105,9 @@ int main(int nargs, char* args[]) {
 
     return 0;
 }
+
+//12: 65.7
+//20: 155.868
 
 /*
  -- System info --

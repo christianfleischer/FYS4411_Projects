@@ -29,6 +29,7 @@ public:
 private:
     int m_numberOfParticles = 0;
     int m_halfNumberOfParticles = 0;
+    int m_k = 0;
     double m_omega = 0;
     double m_C = 0;
     double m_metropolisRatio = 0;

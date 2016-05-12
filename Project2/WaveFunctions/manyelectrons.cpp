@@ -76,9 +76,9 @@ std::vector<double> ManyElectrons::computeDerivative(std::vector<class Particle*
     int numberOfDimensions = m_system->getNumberOfDimensions();
     std::vector<double> derivative(numberOfParticles*numberOfDimensions);
     derivative[i*numberOfDimensions] = computeSlaterGradient(particles, i)[0]
-                                        *computeJastrowGradient(particles, i)[0];
+                                        +computeJastrowGradient(particles, i)[0];
     derivative[i*numberOfDimensions+1] = computeSlaterGradient(particles, i)[1]
-                                          *computeJastrowGradient(particles, i)[1];
+                                          +computeJastrowGradient(particles, i)[1];
     return derivative;
     //return 0;
 }
@@ -114,7 +114,7 @@ std::vector<double> ManyElectrons::computeSlaterGradient(std::vector<class Parti
 
 }
 
-std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Particle*> particles, int i) {
+std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Particle*> particles, int k) {
 
     std::vector<double> jastrowGradient(2);
     jastrowGradient[0] = jastrowGradient[1] = 0;
@@ -122,14 +122,14 @@ std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Part
     double beta = m_parameters[1];
 
     for (int j=0; j < m_numberOfParticles; j++) {
-        if (j != i) {
-            std::vector<double> r_k = particles[i]->getPosition();
+        if (j != k) {
+            std::vector<double> r_k = particles[k]->getPosition();
             std::vector<double> r_j = particles[j]->getPosition();
             double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
             r_kj = sqrt(r_kj);
             double denom = 1 + beta*r_kj;
-            jastrowGradient[0] += (r_k[0]-r_j[0])/r_kj * m_a(i, j)/(denom*denom);
-            jastrowGradient[1] += (r_k[1]-r_j[1])/r_kj * m_a(i, j)/(denom*denom);
+            jastrowGradient[0] += (r_k[0]-r_j[0])/r_kj * m_a(k, j)/(denom*denom);
+            jastrowGradient[1] += (r_k[1]-r_j[1])/r_kj * m_a(k, j)/(denom*denom);
         }
     }
 
@@ -199,7 +199,7 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
                 double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
                 r_kj = sqrt(r_kj);
                 double denom_kj = (1+beta*r_kj);
-                jastrowSum2 += 2*m_a(k,j)/(r_kj*denom_kj*denom_kj) - 2*m_a(k,j)*beta/(denom_kj*denom_kj*denom_kj);
+                jastrowSum2 += m_a(k,j)/(r_kj*denom_kj*denom_kj) - 2*m_a(k,j)*beta/(denom_kj*denom_kj*denom_kj);
 
                 for (int i=0; i < m_numberOfParticles; i++) {
                     if (i != k) {
@@ -261,8 +261,36 @@ double ManyElectrons::computeDerivativeWrtAlpha(std::vector<Particle *> particle
 double ManyElectrons::computeDerivativeWrtBeta(std::vector<Particle *> particles){
     // Calculates the derivative w.r.t. beta for the interacting wave function using the analytical expression.
 
+    int numberOfParticles = m_system->getNumberOfParticles();
+    int numberOfDimensions = m_system->getNumberOfDimensions();
 
-    return 0;
+    //double alpha = m_parameters[0];
+    double beta = m_parameters[1];
+
+    double r_iSquared = 0;
+    double r_jSquared = 0;
+    double r_ij = 0;
+    double derivative = 0;
+
+    for (int i=0; i < numberOfParticles; i++){
+        for (int j=i+1; j < numberOfParticles; j++) {
+            std::vector<double> r_i = particles[i]->getPosition();
+            std::vector<double> r_j = particles[j]->getPosition();
+            for (int k=0; k < numberOfDimensions; k++) {
+                r_iSquared += r_i[k]*r_i[k];
+                r_jSquared += r_j[k]*r_j[k];
+                r_ij += (r_i[k]-r_j[k])*(r_i[k]-r_j[k]);
+            }
+            r_ij = sqrt(r_ij);
+            derivative -= m_a(i,j)*r_ij*r_ij/((1+beta*r_ij)*(1+beta*r_ij))
+                            *evaluate(particles);
+        }
+    }
+
+
+
+    return derivative;
+    //return 0;
 }
 
 double ManyElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
