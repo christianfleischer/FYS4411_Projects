@@ -31,10 +31,10 @@ double TwoElectrons::evaluate(std::vector<class Particle*> particles) {
     double r1Squared = 0;
     double r2Squared = 0;
     double r12 = 0;
+    std::vector<double> r1 = particles[0]->getPosition();
+    std::vector<double> r2 = particles[1]->getPosition();
 
     for (int i=0; i < numberOfDimensions; i++){
-        std::vector<double> r1 = particles[0]->getPosition();
-        std::vector<double> r2 = particles[1]->getPosition();
 
         r1Squared += r1[i]*r1[i];
         r2Squared += r2[i]*r2[i];
@@ -66,6 +66,7 @@ std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*>
     for (int i=0; i < numberOfDimensions; i++){
         r12 += (r1[i]-r2[i])*(r1[i]-r2[i]);
     }
+    r12 = sqrt(r12);
 
     std::vector<double> derivative(numberOfParticles*numberOfDimensions);
     double constFactor = m_a/(r12*(1+beta*r12)*(1+beta*r12));
@@ -101,10 +102,10 @@ double TwoElectrons::computeDoubleDerivative(std::vector<class Particle*> partic
     double r1Squared = 0;
     double r2Squared = 0;
     double r12 = 0;
+    std::vector<double> r1 = particles[0]->getPosition();
+    std::vector<double> r2 = particles[1]->getPosition();
 
     for (int i=0; i < numberOfDimensions; i++){
-        std::vector<double> r1 = particles[0]->getPosition();
-        std::vector<double> r2 = particles[1]->getPosition();
 
         r1Squared += r1[i]*r1[i];
         r2Squared += r2[i]*r2[i];
@@ -115,17 +116,19 @@ double TwoElectrons::computeDoubleDerivative(std::vector<class Particle*> partic
     double denom = 1+beta*r12;
 
     double doubleDerivative = -2*numberOfDimensions*alpha*m_omega
+                            + 2*m_a/(denom*denom)*(1.0/r12 - 2*beta/denom)
                             + alpha*alpha*m_omega*m_omega*(r1Squared+r2Squared)
                             + 2*m_a*m_a/(denom*denom*denom*denom)
-                            - alpha*m_omega*r12*m_a/(denom*denom);
+                            - 2*m_a*alpha*m_omega*r12/(denom*denom);
 
     return doubleDerivative;
     //return 0;
 }
 
-double TwoElectrons::computeDerivativeWrtAlpha(std::vector<Particle *> particles){
+std::vector<double> TwoElectrons::computeDerivativeWrtParameters(std::vector<Particle *> particles){
     // Calculates the derivative w.r.t. alpha for the interacting wave function using the analytical expression.
 
+    std::vector<double> derivative(2);
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
     assert(numberOfParticles = 2);
@@ -148,41 +151,16 @@ double TwoElectrons::computeDerivativeWrtAlpha(std::vector<Particle *> particles
 
     r12 = sqrt(r12);
 
-    double derivative = -m_C*m_omega*(r1Squared + r2Squared)*0.5
-                        *exp(-alpha*m_omega*(r1Squared + r2Squared)*0.5)
-                        *exp(m_a*r12/(1+beta*r12));
+    derivative[0] = -m_C*m_omega*(r1Squared + r2Squared)*0.5;
+                        //*exp(-alpha*m_omega*(r1Squared + r2Squared)*0.5)
+                        //*exp(m_a*r12/(1+beta*r12));
 
-    return derivative;
-}
 
-double TwoElectrons::computeDerivativeWrtBeta(std::vector<Particle *> particles){
     // Calculates the derivative w.r.t. beta for the interacting wave function using the analytical expression.
 
-    int numberOfParticles = m_system->getNumberOfParticles();
-    int numberOfDimensions = m_system->getNumberOfDimensions();
-    assert(numberOfParticles = 2);
-    //assert(numberOfDimensions) = 2;
-    double alpha = m_parameters[0];
-    double beta = m_parameters[1];
-
-    double r1Squared = 0;
-    double r2Squared = 0;
-    double r12 = 0;
-
-    for (int i=0; i < numberOfDimensions; i++){
-        std::vector<double> r1 = particles[0]->getPosition();
-        std::vector<double> r2 = particles[1]->getPosition();
-
-        r1Squared += r1[i]*r1[i];
-        r2Squared += r2[i]*r2[i];
-        r12 += (r1[i]-r2[i])*(r1[i]-r2[i]);
-    }
-
-    r12 = sqrt(r12);
-
-    double derivative = -m_C*m_a*r12*r12/((1+beta*r12)*(1+beta*r12))
-                        *exp(-alpha*m_omega*(r1Squared + r2Squared)*0.5)
-                        *exp(m_a*r12/(1+beta*r12));
+    derivative[1] = -m_C*m_a*r12*r12/((1+beta*r12)*(1+beta*r12))
+                        ;//*exp(-alpha*m_omega*(r1Squared + r2Squared)*0.5)
+                        //*exp(m_a*r12/(1+beta*r12));
 
     return derivative;
 }

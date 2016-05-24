@@ -40,9 +40,11 @@ void Sampler::sample(bool acceptedStep) {
     if (m_stepNumber == 0) {
         m_cumulativeEnergy =             0;
         m_cumulativeSquaredEnergy =      0;
-        m_cumulativeWFuncDerivativeAlpha =    0;
-        m_cumulativeWFuncEnergyAlpha =        0;
         m_cumulativeAcceptedSteps =      0;
+        for (int i=0; i < m_system->getWaveFunction()->getNumberOfParameters(); i++) {
+            m_cumulativeWFuncDerivativeParameters.push_back(0);
+            m_cumulativeWFuncEnergyParameters.push_back(0);
+        }
     }
 
     /* Here you should sample all the interesting things you want to measure.
@@ -73,16 +75,13 @@ void Sampler::sample(bool acceptedStep) {
 
     // Sample things needed for the steepest descent method:
     double waveFunction = m_system->getWaveFunction()->evaluate(particles);
-
-    double waveFuncDerivativeAlpha = m_system->getWaveFunction()->computeDerivativeWrtAlpha(particles);
-    waveFuncDerivativeAlpha /= waveFunction;
-    m_cumulativeWFuncDerivativeAlpha += waveFuncDerivativeAlpha;
-    m_cumulativeWFuncEnergyAlpha += waveFuncDerivativeAlpha*localEnergy;
-
-    double waveFuncDerivativeBeta = m_system->getWaveFunction()->computeDerivativeWrtBeta(particles);
-    waveFuncDerivativeBeta /= waveFunction;
-    m_cumulativeWFuncDerivativeBeta += waveFuncDerivativeBeta;
-    m_cumulativeWFuncEnergyBeta += waveFuncDerivativeBeta*localEnergy;
+    std::vector<double> waveFuncDerivativeParameters = m_system->getWaveFunction()->computeDerivativeWrtParameters(particles);
+    int numberOfParameters = m_system->getWaveFunction()->getNumberOfParameters();
+    for (int i=0; i < numberOfParameters; i++) {
+        waveFuncDerivativeParameters[i] /= waveFunction;
+        m_cumulativeWFuncDerivativeParameters[i] += waveFuncDerivativeParameters[i];
+        m_cumulativeWFuncEnergyParameters[i] += waveFuncDerivativeParameters[i]*localEnergy;
+    }
 
     // Sample whether the step is accepted or not in order to find total acceptance ratio
     m_cumulativeAcceptedSteps += acceptedStep;
@@ -132,11 +131,11 @@ void Sampler::computeAverages() {
     m_squaredEnergy = m_cumulativeSquaredEnergy / (double) m_stepNumber;
     m_variance = m_squaredEnergy - m_energy*m_energy;
 
-    m_waveFuncDerivativeAlpha = m_cumulativeWFuncDerivativeAlpha / (double) m_stepNumber;
-    m_waveFuncEnergyAlpha = m_cumulativeWFuncEnergyAlpha / (double) m_stepNumber;
-
-    m_waveFuncDerivativeBeta = m_cumulativeWFuncDerivativeBeta / (double) m_stepNumber;
-    m_waveFuncEnergyBeta = m_cumulativeWFuncEnergyBeta / (double) m_stepNumber;
+    int numberOfParticles = m_system->getWaveFunction()->getNumberOfParameters();
+    for (int i=0; i < numberOfParticles; i++) {
+        m_waveFuncDerivativeParameters.push_back(m_cumulativeWFuncDerivativeParameters[i] / (double) m_stepNumber);
+        m_waveFuncEnergyParameters.push_back(m_cumulativeWFuncEnergyParameters[i] / (double) m_stepNumber);
+    }
 
     m_acceptanceRate = m_cumulativeAcceptedSteps / (double) m_stepNumber;
 

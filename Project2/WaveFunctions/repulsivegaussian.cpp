@@ -180,11 +180,12 @@ double RepulsiveGaussian::computeDoubleDerivative(std::vector<class Particle*> p
     //return 0;    
 }
 
-double RepulsiveGaussian::computeDerivativeWrtAlpha(std::vector<Particle *> particles){
+std::vector<double> RepulsiveGaussian::computeDerivativeWrtParameters(std::vector<Particle *> particles){
     // Calculates the derivative w.r.t. alpha for the interacting wave function using the analytical expression.
     // Correlation factor has no alpha dependency so from the product rule the analytical expression is simply
     // the analytical expression for the non-interacting case multiplied by the correlation factor.
 
+    std::vector<double> derivative(1);
     double rSum = 0;
     double prod = 1;
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -219,13 +220,8 @@ double RepulsiveGaussian::computeDerivativeWrtAlpha(std::vector<Particle *> part
         }
     }
 
-    double derivative = -rSum*exp(-alpha*rSum)*prod;
+    derivative[0] = -rSum*exp(-alpha*rSum)*prod;
     return derivative;
-}
-
-double RepulsiveGaussian::computeDerivativeWrtBeta(std::vector<Particle *> particles){
-    // Calculates the derivative w.r.t. beta for the interacting wave function using the analytical expression.
-    return 0;
 }
 
 double RepulsiveGaussian::computeMetropolisRatio(std::vector<Particle *> particles,

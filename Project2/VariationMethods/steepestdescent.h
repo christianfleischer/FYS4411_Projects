@@ -1,11 +1,12 @@
 #ifndef PROJECT2_STEEPESTDESCENT_H
 #define PROJECT2_STEEPESTDESCENT_H
 #include "iostream"
+#include <vector>
 
 class SteepestDescent {
 public:
     SteepestDescent(class System* system, double stepLengthSD);
-    void obtainOptimalParameter(double parameter, std::string parameterName, double tol,
+    void obtainOptimalParameter(std::vector<double> parameters, double tol,
                                 int maxIterations, int numberOfMetropolisSteps, bool importanceSampling);
 
 private:

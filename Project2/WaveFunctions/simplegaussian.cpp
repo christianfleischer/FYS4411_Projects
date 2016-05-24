@@ -96,10 +96,11 @@ double SimpleGaussian::computeDoubleDerivative(std::vector<class Particle*> part
     //return 0;
 }
 
-double SimpleGaussian::computeDerivativeWrtAlpha(std::vector<Particle *> particles) {
+std::vector<double> SimpleGaussian::computeDerivativeWrtParameters(std::vector<Particle *> particles) {
     // Calculates the derivative w.r.t. alpha for the non-interacting wave function using the analytical expression.
     // psi_i = exp(-alpha*r_i*r_i) -> d(psi_i)/d(alpha) = -(r_i*r_i)*exp(-alpha*r_i*r_i).
 
+    std::vector<double> derivative(1);
     double rSum = 0;
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
@@ -114,13 +115,8 @@ double SimpleGaussian::computeDerivativeWrtAlpha(std::vector<Particle *> particl
         rSum += rSquared;
     }
 
-    double derivative = -rSum*exp(-alpha*rSum);
+    derivative[0] = -rSum*exp(-alpha*rSum);
     return derivative;
-}
-
-double SimpleGaussian::computeDerivativeWrtBeta(std::vector<Particle *> particles){
-    // Calculates the derivative w.r.t. beta for the interacting wave function using the analytical expression.
-    return 0;
 }
 
 double SimpleGaussian::computeMetropolisRatio(std::vector<Particle *> particles,

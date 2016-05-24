@@ -1,5 +1,6 @@
 #ifndef PROJECT2_SAMPLER_H
 #define PROJECT2_SAMPLER_H
+#include <vector>
 
 class Sampler {
 public:
@@ -14,10 +15,8 @@ public:
     void computeAverages();
     void saveToFile(double localEnergy);
     double getEnergy()                   { return m_energy; }
-    double getWaveFuncDerivativeAlpha()  { return m_waveFuncDerivativeAlpha; }
-    double getWaveFuncEnergyAlpha()      { return m_waveFuncEnergyAlpha; }
-    double getWaveFuncDerivativeBeta()   { return m_waveFuncDerivativeBeta; }
-    double getWaveFuncEnergyBeta()       { return m_waveFuncEnergyBeta; }
+    std::vector<double> getWaveFuncDerivativeParameters()  { return m_waveFuncDerivativeParameters; }
+    std::vector<double> getWaveFuncEnergyParameters()      { return m_waveFuncEnergyParameters; }
     double getMeanDistance()             { return m_meanDistance; }
     double getVariance()                 { return m_variance; }
     double getAcceptanceRate()           { return m_acceptanceRate; }
@@ -32,14 +31,10 @@ private:
     double  m_cumulativeSquaredEnergy = 0;
     double  m_variance = 0;
     double  m_acceptanceRate = 0;
-    double  m_waveFuncDerivativeAlpha = 0;
-    double  m_waveFuncEnergyAlpha = 0;
-    double  m_cumulativeWFuncDerivativeAlpha = 0;
-    double  m_cumulativeWFuncEnergyAlpha = 0;
-    double  m_waveFuncDerivativeBeta = 0;
-    double  m_waveFuncEnergyBeta = 0;
-    double  m_cumulativeWFuncDerivativeBeta = 0;
-    double  m_cumulativeWFuncEnergyBeta = 0;
+    std::vector<double>  m_waveFuncDerivativeParameters = std::vector<double>();
+    std::vector<double>  m_waveFuncEnergyParameters = std::vector<double>();
+    std::vector<double>  m_cumulativeWFuncDerivativeParameters = std::vector<double>();
+    std::vector<double>  m_cumulativeWFuncEnergyParameters = std::vector<double>();
     double  m_cumulativeDistance = 0;
     double  m_meanDistance = 0;
     class System* m_system = nullptr;

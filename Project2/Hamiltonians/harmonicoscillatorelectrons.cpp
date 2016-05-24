@@ -42,7 +42,7 @@ double HarmonicOscillatorElectrons::computeLocalEnergy(std::vector<Particle*> pa
         }
     }
     potentialEnergy *= 0.5*m_omega*m_omega;
-    potentialEnergy += repulsiveTerm;
+    if (m_repulsion) { potentialEnergy += repulsiveTerm; }
 
     double kineticEnergy = 0;
 

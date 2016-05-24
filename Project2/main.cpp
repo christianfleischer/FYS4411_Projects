@@ -34,20 +34,21 @@ int main(int nargs, char* args[]) {
 
     int numberOfDimensions  = 2;
     int numberOfParticles   = 2;
-    int numberOfSteps       = (int) 1e5;    // Monte Carlo cycles
+    int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
     double omega            = 1.0;          // Oscillator frequency.
-    double alpha            = 0.737505;//0.7;          // Variational parameter.
-    double beta             = 0.364;//0.506577;//2.82843;      // Variational parameter.
+    double alpha            = 0.98456;//0.737505;//0.7;          // Variational parameter.
+    double beta             = 0.40691;//0.365;//0.506577;//2.82843;      // Variational parameter.
     double gamma            = 2.82843;
     double a                = 0.0043;       // Hard core boson diameter.
     double stepLength       = 0.1;          // Metropolis step length.
     double equilibration    = 0.1;          // Amount of the total steps used for equilibration.
     double dt               = 0.01;         // Time step for importance sampling.
-    double aElectrons       = 1; //1./3
-    double C                = 1;            // Norm constant.
+    double aElectrons       = 1.; //1./3
+    double C                = 1.;           // Norm constant.
     bool analyticalKinetic  = true;
     bool importanceSampling = true;
-    bool repulsion          = false;         // Switch for interacting system or not.
+    bool repulsion          = true;         // Switch for interacting system or not. (Coulomb for manybody qdot)
+    bool Jastrow            = true;         // Switch for Jastrow factor. (manybody qdot)
     bool saveEnergies       = false;
     bool savePositions      = false;
     bool showProgress       = true;
@@ -81,7 +82,7 @@ int main(int nargs, char* args[]) {
         }
         else {
             system->setHamiltonian      (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic, repulsion));
-            system->setWaveFunction     (new ManyElectrons(system, alpha, beta, omega, C));
+            system->setWaveFunction     (new ManyElectrons(system, alpha, beta, omega, C, Jastrow));
         }
     }
     system->setEquilibrationFraction    (equilibration);
@@ -89,7 +90,7 @@ int main(int nargs, char* args[]) {
     system->setTimeStep                 (dt);
     system->setMyRank                   (my_rank);
     // Optimize parameters
-    //system->optimizeParameters          (system, alpha, beta);
+    system->optimizeParameters          (system, alpha, beta);
     system->setSaveEnergies             (saveEnergies);
     system->setSavePositions            (savePositions);
     // Start Monte Carlo simulation

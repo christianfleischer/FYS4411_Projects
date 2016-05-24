@@ -173,32 +173,35 @@ void System::optimizeParameters(System* system, double alpha, double beta) {
     int maxIterations             = 100;
     int numberOfStepsSD           = (int) 1e5;
     double stepLengthSD           = 0.01;
-    double initialAlpha           = alpha;//0.7;
+    std::vector<double> initialParameters(2);
+    initialParameters[0] = alpha;
+    initialParameters[1] = beta;
+    //double initialAlpha           = alpha;//0.7;
     double tol                    = 1e-6;//0.001;
     bool importanceSamplingSD     = false;
-    std::string parameterAlpha    = "alpha";
+    //std::string parameterAlpha    = "alpha";
 
     if (m_my_rank == 0) {
-        cout << "Optimizing alpha using steepest descent:" << endl;
+        cout << "Optimizing parameters using steepest descent:" << endl;
         SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
-        steepestDescent->obtainOptimalParameter(initialAlpha, parameterAlpha, tol, maxIterations,
+        steepestDescent->obtainOptimalParameter(initialParameters, tol, maxIterations,
                                             numberOfStepsSD, importanceSamplingSD);
     }
 
-    maxIterations             = 100;
-    numberOfStepsSD           = (int) 1e5;
-    stepLengthSD              = 0.01;
-    double initialBeta        = beta;//1.142;//0.505;
-    tol                       = 1e-6;//0.001;
-    importanceSamplingSD      = false;
-    std::string parameterBeta = "beta";
+//    maxIterations             = 100;
+//    numberOfStepsSD           = (int) 1e5;
+//    stepLengthSD              = 0.01;
+//    double initialBeta        = beta;//1.142;//0.505;
+//    tol                       = 1e-6;//0.001;
+//    importanceSamplingSD      = false;
+//    std::string parameterBeta = "beta";
 
-    if (m_my_rank == 0) {
-        cout << "Optimizing beta using steepest descent:" << endl;
-        SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
-        steepestDescent->obtainOptimalParameter(initialBeta, parameterBeta, tol, maxIterations,
-                                            numberOfStepsSD, importanceSamplingSD);
-    }
+//    if (m_my_rank == 0) {
+//        cout << "Optimizing beta using steepest descent:" << endl;
+//        SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
+//        steepestDescent->obtainOptimalParameter(initialBeta, parameterBeta, tol, maxIterations,
+//                                            numberOfStepsSD, importanceSamplingSD);
+//    }
 }
 
 void System::MPI_CleanUp(double totalE, double totalVariance, double totalAcceptanceRate,
