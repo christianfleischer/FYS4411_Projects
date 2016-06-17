@@ -11,6 +11,7 @@ public:
 
 private:
     double m_stepLengthSD = 0;
+    std::vector<double> m_derivativeAvg;
     class System* m_system = nullptr;
 };
 

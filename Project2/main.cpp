@@ -24,9 +24,10 @@ using namespace std;
 int main(int nargs, char* args[]) {
 
     int numprocs, my_rank;
-    double totalE, totalVariance, totalAcceptanceRate, finalMeanDistance;
+    double totalE, totalKE, totalPE, totalVariance, totalAcceptanceRate, finalMeanDistance;
     double timeStart, timeEnd, totalTime;
 
+    // Initialize MPI parallelization
     MPI_Init(&nargs, &args);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -35,12 +36,12 @@ int main(int nargs, char* args[]) {
     int numberOfDimensions  = 2;
     int numberOfParticles   = 2;
     int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
-    double omega            = 1.0;          // Oscillator frequency.
-    double alpha            = 0.98456;//0.737505;//0.7;          // Variational parameter.
-    double beta             = 0.40691;//0.365;//0.506577;//2.82843;      // Variational parameter.
+    double omega            = 1.;          // Oscillator frequency.
+    double alpha            = 0.98456;//0.7;          // Variational parameter.
+    double beta             = 0.40691;//2.82843;      // Variational parameter.
     double gamma            = 2.82843;
     double a                = 0.0043;       // Hard core boson diameter.
-    double stepLength       = 0.1;          // Metropolis step length.
+    double stepLength       = 0.5;          // Metropolis step length.
     double equilibration    = 0.1;          // Amount of the total steps used for equilibration.
     double dt               = 0.01;         // Time step for importance sampling.
     double aElectrons       = 1.; //1./3
@@ -48,12 +49,14 @@ int main(int nargs, char* args[]) {
     bool analyticalKinetic  = true;
     bool importanceSampling = true;
     bool repulsion          = true;         // Switch for interacting system or not. (Coulomb for manybody qdot)
+    bool quantumDots        = true;         // Switch for quantum dot system.
+    bool twobodyQD          = false;        // Switch for twobody quantum dot system. (no Slater)
     bool Jastrow            = true;         // Switch for Jastrow factor. (manybody qdot)
+    bool optimizeParameters = false;        // Switch for optimizing variational parameters.
     bool saveEnergies       = false;
     bool savePositions      = false;
     bool showProgress       = true;
     bool printToTerminal    = true;
-    bool quantumDots        = true;
 
     int numMyCycles = numberOfSteps/numprocs;
 
@@ -76,9 +79,9 @@ int main(int nargs, char* args[]) {
     system->setWaveFunction             (new SimpleGaussian(system, alpha));
     }
     if (quantumDots) {
-        if (numberOfParticles == 1) {
+        if (twobodyQD) {
             system->setHamiltonian      (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic, repulsion));
-            system->setWaveFunction     (new TwoElectrons(system, alpha, beta, omega, aElectrons, C));
+            system->setWaveFunction     (new TwoElectrons(system, alpha, beta, omega, aElectrons, C, Jastrow));
         }
         else {
             system->setHamiltonian      (new HarmonicOscillatorElectrons(system, omega, analyticalKinetic, repulsion));
@@ -89,20 +92,20 @@ int main(int nargs, char* args[]) {
     system->setStepLength               (stepLength);
     system->setTimeStep                 (dt);
     system->setMyRank                   (my_rank);
+    system->setNumProcs                 (numprocs);
     // Optimize parameters
-    system->optimizeParameters          (system, alpha, beta);
+    if (optimizeParameters) {
+        system->optimizeParameters          (system, alpha, beta);
+    }
     system->setSaveEnergies             (saveEnergies);
     system->setSavePositions            (savePositions);
     // Start Monte Carlo simulation
     system->runMetropolisSteps          (numMyCycles, importanceSampling, showProgress, printToTerminal);
     // Compute MPI averages etc.
-    system->MPI_CleanUp                 (totalE, totalVariance, totalAcceptanceRate, finalMeanDistance,
+    system->MPI_CleanUp                 (totalE, totalKE, totalPE, totalVariance, totalAcceptanceRate, finalMeanDistance,
                                          timeStart, timeEnd, totalTime, numprocs, numberOfSteps);
     // Merge the files from the nodes into one data file
     system->mergeOutputFiles            (numprocs);
-
-    //ManyElectrons* manyelectrons = new ManyElectrons(system, 1, 1, 1, 1, 1);
-    //cout << manyelectrons->computeHermitePolynomialDoubleDerivative(4, 2) << endl;
 
     return 0;
 }

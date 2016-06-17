@@ -10,7 +10,8 @@ public:
     void runMetropolisSteps         (int numberOfMetropolisSteps, bool importanceSampling,
                                      bool showProgress, bool printToTerminal);
     void optimizeParameters         (System* system, double alpha, double beta);
-    void MPI_CleanUp                (double totalE, double totalVariance, double totalAcceptanceRate,
+    void MPI_CleanUp                (double totalE, double totalKE, double totalPE,
+                                     double totalVariance, double totalAcceptanceRate,
                                      double finalMeanDistance, double timeStart,
                                      double timeEnd, double totalTime, int numprocs, int numberOfSteps);
     void mergeOutputFiles           (int numprocs);
@@ -26,9 +27,10 @@ public:
     void setInitialState            (class InitialState* initialState);
     void setNumberOfMetropolisSteps (int numberOfMetropolisSteps);
     void setMyRank                  (int my_rank);
+    void setNumProcs                (int numprocs);
     void setComputationTime         (double computationTime);
     void setSaveEnergies            (bool saveEnergies);
-    void setSavePositions            (bool savePositions);
+    void setSavePositions           (bool savePositions);
     class WaveFunction*             getWaveFunction()   { return m_waveFunction; }
     class Hamiltonian*              getHamiltonian()    { return m_hamiltonian; }
     class Sampler*                  getSampler()        { return m_sampler; }
@@ -38,6 +40,7 @@ public:
     int getNumberOfDimensions()         { return m_numberOfDimensions; }
     int getNumberOfMetropolisSteps()    { return m_numberOfMetropolisSteps; }
     int getMyRank()                     { return m_my_rank; }
+    int getNumProcs()                   { return m_numprocs; }
     double getEquilibrationFraction()   { return m_equilibrationFraction; }
     double getComputationTime()         { return m_computationTime; }
     bool getSaveEnergies()              { return m_saveEnergies; }
@@ -50,6 +53,7 @@ private:
     int                             m_numberOfDimensions = 0;
     int                             m_numberOfMetropolisSteps = 0;
     int                             m_my_rank = 0;
+    int                             m_numprocs = 0;
     double                          m_equilibrationFraction = 0.0;
     double                          m_stepLength = 0.1;
     double                          m_dt = 0.01;
@@ -59,6 +63,7 @@ private:
     class InitialState*             m_initialState = nullptr;
     class Sampler*                  m_sampler = nullptr;
     std::vector<class Particle*>    m_particles = std::vector<class Particle*>();
+    bool                            m_printToTerminal = false;
     bool                            m_saveEnergies = false;
     FILE*                           m_outfileE;
     bool                            m_savePositions = false;

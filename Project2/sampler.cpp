@@ -23,6 +23,14 @@ void Sampler::setEnergy(double energy) {
     m_energy = energy;
 }
 
+void Sampler::setKineticEnergy(double kineticEnergy) {
+    m_kineticEnergy = kineticEnergy;
+}
+
+void Sampler::setPotentialEnergy(double potentialEnergy) {
+    m_potentialEnergy = potentialEnergy;
+}
+
 void Sampler::setVariance(double variance) {
     m_variance = variance;
 }
@@ -52,26 +60,41 @@ void Sampler::sample(bool acceptedStep) {
      */
 
     // Sample local energy
-    double localEnergy = m_system->getHamiltonian()->
-                         computeLocalEnergy(m_system->getParticles());
+    std::vector<double> energies = m_system->getHamiltonian()->
+                                 computeLocalEnergy(m_system->getParticles());
+    double localEnergy = energies[0];
+    double kineticEnergy = energies[1];
+    double potentialEnergy = energies[2];
+
     m_cumulativeEnergy  += localEnergy;
     m_cumulativeSquaredEnergy += localEnergy*localEnergy;
+    m_cumulativeKineticEnergy += kineticEnergy;
+    m_cumulativePotentialEnergy += potentialEnergy;
 
     std::vector<Particle*> particles = m_system->getParticles();
 
     // Sample mean distance
-    double r12 = 0;
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
-    if (numberOfParticles == 2){
-        std::vector<double> r1 = particles[0]->getPosition();
-        std::vector<double> r2 = particles[1]->getPosition();
-        for (int i=1; i < numberOfDimensions; i++){
-            r12 += (r1[i]-r2[i])*(r1[i]-r2[i]);
+    if (numberOfParticles==2) {
+        int counter = 0;
+        double avgDistance = 0;
+        for (int i=0 ; i < numberOfParticles; i++) {
+            double r_ij = 0;
+            std::vector<double> r_i = particles[i]->getPosition();
+            for (int j=i+1; j < numberOfParticles; j++) {
+                std::vector<double> r_j = particles[j]->getPosition();
+                for (int k=0; k < numberOfDimensions; k++) {
+                    r_ij += (r_i[k]-r_j[k])*(r_i[k]-r_j[k]);
+                }
+                r_ij = sqrt(r_ij);
+                avgDistance += r_ij;
+                counter ++;
+            }
         }
+        avgDistance /= counter;
+        m_cumulativeDistance += avgDistance;
     }
-    r12 = sqrt(r12);
-    m_cumulativeDistance += r12;
 
     // Sample things needed for the steepest descent method:
     double waveFunction = m_system->getWaveFunction()->evaluate(particles);
@@ -115,6 +138,8 @@ void Sampler::printOutputToTerminal() {
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
     cout << " Variance : " << m_variance << endl;
+    cout << " Kinetic Energy : " << m_kineticEnergy << endl;
+    cout << " Potential Energy : " << m_potentialEnergy << endl;
     cout << " Acceptance Rate : " << m_acceptanceRate << endl;
     if (m_meanDistance != 0) cout << " Mean Distance : " << m_meanDistance << endl;
     cout << endl;
@@ -130,6 +155,9 @@ void Sampler::computeAverages() {
     m_energy = m_cumulativeEnergy / (double) m_stepNumber;
     m_squaredEnergy = m_cumulativeSquaredEnergy / (double) m_stepNumber;
     m_variance = m_squaredEnergy - m_energy*m_energy;
+
+    m_kineticEnergy = m_cumulativeKineticEnergy / (double) m_stepNumber;
+    m_potentialEnergy = m_cumulativePotentialEnergy / (double) m_stepNumber;
 
     int numberOfParticles = m_system->getWaveFunction()->getNumberOfParameters();
     for (int i=0; i < numberOfParticles; i++) {
@@ -172,7 +200,3 @@ void Sampler::saveToFile(double localEnergy){
         //fclose(outfile);
     }
 }
-
-
-
-

@@ -7,6 +7,8 @@ public:
     Sampler(class System* system);
     void setNumberOfMetropolisSteps(int steps);
     void setEnergy(double energy);
+    void setKineticEnergy(double kineticEnergy);
+    void setPotentialEnergy(double potentialEnergy);
     void setVariance(double variance);
     void setAcceptanceRate(double acceptanceRate);
     void setMeanDistance(double meanDistance);
@@ -15,11 +17,13 @@ public:
     void computeAverages();
     void saveToFile(double localEnergy);
     double getEnergy()                   { return m_energy; }
-    std::vector<double> getWaveFuncDerivativeParameters()  { return m_waveFuncDerivativeParameters; }
-    std::vector<double> getWaveFuncEnergyParameters()      { return m_waveFuncEnergyParameters; }
+    double getKineticEnergy()            { return m_kineticEnergy; }
+    double getPotentialEnergy()          { return m_potentialEnergy; }
     double getMeanDistance()             { return m_meanDistance; }
     double getVariance()                 { return m_variance; }
     double getAcceptanceRate()           { return m_acceptanceRate; }
+    std::vector<double> getWaveFuncDerivativeParameters()  { return m_waveFuncDerivativeParameters; }
+    std::vector<double> getWaveFuncEnergyParameters()      { return m_waveFuncEnergyParameters; }
 
 private:
     int     m_numberOfMetropolisSteps = 0;
@@ -27,8 +31,12 @@ private:
     int     m_cumulativeAcceptedSteps = 0;
     double  m_energy = 0;
     double  m_squaredEnergy = 0;
+    double  m_kineticEnergy = 0;
+    double  m_potentialEnergy = 0;
     double  m_cumulativeEnergy = 0;
     double  m_cumulativeSquaredEnergy = 0;
+    double  m_cumulativeKineticEnergy = 0;
+    double  m_cumulativePotentialEnergy = 0;
     double  m_variance = 0;
     double  m_acceptanceRate = 0;
     std::vector<double>  m_waveFuncDerivativeParameters = std::vector<double>();

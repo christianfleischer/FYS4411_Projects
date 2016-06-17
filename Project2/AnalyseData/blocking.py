@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 def readData(filename):
     
-    infile = open("Data/%s" %filename, 'r')
+    infile = open("%s" %filename, 'r')
     energies = []
     
     for line in infile:
@@ -27,12 +28,12 @@ def blocking(energies, nBlocks, blockSize):
     return mean, variance
     
 if __name__ == "__main__":
-    N = 1
-    energies = readData("energiesN%i.dat" %N)
+    N = int(sys.argv[1])
+    energies = readData(sys.argv[3])
     
     deltaBlockSize = 100
     minBlockSize = 10
-    maxBlockSize = 10000
+    maxBlockSize = int(sys.argv[2])
     numberOfSizes = (maxBlockSize-minBlockSize)/deltaBlockSize + 1
     largestBlockSize = minBlockSize + (numberOfSizes-1)*deltaBlockSize #9910
     

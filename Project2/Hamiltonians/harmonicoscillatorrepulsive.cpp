@@ -16,7 +16,7 @@ HarmonicOscillatorRepulsive::HarmonicOscillatorRepulsive(System* system, double 
     m_gamma = gamma;
 }
 
-double HarmonicOscillatorRepulsive::computeLocalEnergy(std::vector<Particle*> particles) {
+std::vector<double> HarmonicOscillatorRepulsive::computeLocalEnergy(std::vector<Particle*> particles) {
 
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
@@ -56,7 +56,12 @@ double HarmonicOscillatorRepulsive::computeLocalEnergy(std::vector<Particle*> pa
         kineticEnergy = computeKineticEnergy(particles);
     }
 
-    return kineticEnergy + potentialEnergy;
+    std::vector<double> energies(3);
+    energies[0] = kineticEnergy + potentialEnergy;
+    energies[1] = kineticEnergy;
+    energies[2] = potentialEnergy;
+
+    return energies;
 }
 
 

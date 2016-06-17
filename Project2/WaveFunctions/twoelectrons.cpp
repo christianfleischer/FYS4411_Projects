@@ -6,7 +6,8 @@
 #include "../particle.h"
 #include <iostream>
 
-TwoElectrons::TwoElectrons(System* system, double alpha, double beta, double omega, double a, double C) :
+TwoElectrons::TwoElectrons(System* system, double alpha, double beta, double omega,
+                           double a, double C, bool Jastrow) :
         WaveFunction(system) {
     assert(omega > 0);
     m_omega = omega;
@@ -17,10 +18,11 @@ TwoElectrons::TwoElectrons(System* system, double alpha, double beta, double ome
     m_parameters.push_back(beta);
     m_a = a;
     m_C = C;
+    if (!Jastrow) { m_a=0; }
 }
 
 double TwoElectrons::evaluate(std::vector<class Particle*> particles) {
-
+    // Evaluate the wave function.
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
     assert(numberOfParticles = 2);
@@ -50,7 +52,7 @@ double TwoElectrons::evaluate(std::vector<class Particle*> particles) {
 
 std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*> particles,
                                                     int randomParticle){
-    //Calculates ∇ψ/ψ for the interacting wave function using the analytical expression.
+    //Calculates ∇ψ/ψ for the wave function using the analytical expression.
 
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
@@ -91,7 +93,7 @@ double TwoElectrons::computeDoubleDerivative(std::vector<class Particle*> partic
      * Schrödinger equation to see how the two are related).
      */
 
-    //Calculates ∇²ψ/ψ for the interacting wave function using the analytical expression.
+    //Calculates ∇²ψ/ψ for the wave function using the analytical expression.
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
     assert(numberOfParticles = 2);
@@ -126,7 +128,7 @@ double TwoElectrons::computeDoubleDerivative(std::vector<class Particle*> partic
 }
 
 std::vector<double> TwoElectrons::computeDerivativeWrtParameters(std::vector<Particle *> particles){
-    // Calculates the derivative w.r.t. alpha for the interacting wave function using the analytical expression.
+    // Calculates the derivative w.r.t. alpha for the wave function using the analytical expression.
 
     std::vector<double> derivative(2);
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -156,7 +158,7 @@ std::vector<double> TwoElectrons::computeDerivativeWrtParameters(std::vector<Par
                         //*exp(m_a*r12/(1+beta*r12));
 
 
-    // Calculates the derivative w.r.t. beta for the interacting wave function using the analytical expression.
+    // Calculates the derivative w.r.t. beta for the wave function using the analytical expression.
 
     derivative[1] = -m_C*m_a*r12*r12/((1+beta*r12)*(1+beta*r12))
                         ;//*exp(-alpha*m_omega*(r1Squared + r2Squared)*0.5)

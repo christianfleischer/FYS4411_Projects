@@ -162,10 +162,10 @@ void System::runMetropolisSteps(int numberOfMetropolisSteps, bool importanceSamp
 
     finish = clock();
     m_computationTime = (finish-start)/ (double) CLOCKS_PER_SEC;
+    m_printToTerminal = printToTerminal;//if (printToTerminal){;} //m_sampler->printOutputToTerminal();
 
     // Compute final expectation values
     m_sampler->computeAverages();
-    if (printToTerminal){;} //m_sampler->printOutputToTerminal();
 }
 
 void System::optimizeParameters(System* system, double alpha, double beta) {
@@ -183,10 +183,10 @@ void System::optimizeParameters(System* system, double alpha, double beta) {
 
     if (m_my_rank == 0) {
         cout << "Optimizing parameters using steepest descent:" << endl;
-        SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
-        steepestDescent->obtainOptimalParameter(initialParameters, tol, maxIterations,
-                                            numberOfStepsSD, importanceSamplingSD);
     }
+    SteepestDescent* steepestDescent = new SteepestDescent(system, stepLengthSD);
+    steepestDescent->obtainOptimalParameter(initialParameters, tol, maxIterations,
+                                            numberOfStepsSD, importanceSamplingSD);
 
 //    maxIterations             = 100;
 //    numberOfStepsSD           = (int) 1e5;
@@ -204,15 +204,20 @@ void System::optimizeParameters(System* system, double alpha, double beta) {
 //    }
 }
 
-void System::MPI_CleanUp(double totalE, double totalVariance, double totalAcceptanceRate,
+void System::MPI_CleanUp(double totalE, double totalKE, double totalPE,
+                         double totalVariance, double totalAcceptanceRate,
                          double finalMeanDistance, double timeStart, double timeEnd,
                          double totalTime, int numprocs, int numberOfSteps) {
     double e = m_sampler->getEnergy();
+    double e_k = m_sampler->getKineticEnergy();
+    double e_p = m_sampler->getPotentialEnergy();
     double variance = m_sampler->getVariance();
     double acceptanceRate = m_sampler->getAcceptanceRate();
     double mean_distance = m_sampler->getMeanDistance();
 
     MPI_Reduce(&e, &totalE, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&e_k, &totalKE, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&e_p, &totalPE, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&variance, &totalVariance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&acceptanceRate, &totalAcceptanceRate, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&mean_distance, &finalMeanDistance, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -222,16 +227,20 @@ void System::MPI_CleanUp(double totalE, double totalVariance, double totalAccept
 
     if (m_my_rank == 0){
         totalE /= numprocs;
+        totalKE /= numprocs;
+        totalPE /= numprocs;
         totalVariance /= numprocs;
         totalAcceptanceRate /= numprocs;
         finalMeanDistance /= numprocs;
         setNumberOfMetropolisSteps(numberOfSteps);
         setComputationTime(totalTime);
         m_sampler->setEnergy(totalE);
+        m_sampler->setKineticEnergy(totalKE);
+        m_sampler->setPotentialEnergy(totalPE);
         m_sampler->setVariance(totalVariance);
         m_sampler->setAcceptanceRate(totalAcceptanceRate);
         m_sampler->setMeanDistance(finalMeanDistance);
-        m_sampler->printOutputToTerminal();
+        if (m_printToTerminal) {m_sampler->printOutputToTerminal();}
     }
     if (m_saveEnergies) fclose(m_outfileE);
     if (m_savePositions) fclose(m_outfileP);
@@ -309,6 +318,10 @@ void System::setNumberOfMetropolisSteps(int numberOfMetropolisSteps) {
 
 void System::setMyRank(int my_rank) {
     m_my_rank = my_rank;
+}
+
+void System::setNumProcs(int numprocs) {
+    m_numprocs = numprocs;
 }
 
 void System::setComputationTime(double computationTime) {

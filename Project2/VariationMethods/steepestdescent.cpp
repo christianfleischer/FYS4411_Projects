@@ -1,10 +1,11 @@
 #include "steepestdescent.h"
-#include "system.h"
-#include "sampler.h"
-#include "InitialStates/randomuniform.h"
-#include "WaveFunctions/wavefunction.h"
+#include "../system.h"
+#include "../sampler.h"
+#include "../InitialStates/randomuniform.h"
+#include "../WaveFunctions/wavefunction.h"
 #include <cmath>
 #include <iostream>
+#include "mpi.h"
 
 using namespace std;
 
@@ -21,9 +22,11 @@ void SteepestDescent::obtainOptimalParameter(std::vector<double> parameters, dou
     int numberOfParameters = parameters.size();
     double diff = 0;
     std::vector<double> parametersNew = parameters;
-    //int parameterNumber;
-    //if (parameterName == "alpha") parameterNumber = 0;
-    //if (parameterName == "beta")  parameterNumber = 1;
+    int my_rank = m_system->getMyRank();
+
+    for (int i=0; i < numberOfParameters; i++) {
+        m_derivativeAvg.push_back(0);
+    }
 
     do{
 
@@ -47,15 +50,13 @@ void SteepestDescent::obtainOptimalParameter(std::vector<double> parameters, dou
             derivative[i] = 2*(waveFuncEnergy[i] - energy*waveFuncDerivative[i]);
         }
 
-//        if (parameterNumber == 0){
-//            waveFuncEnergy = m_system->getSampler()->getWaveFuncEnergyAlpha();
-//            waveFuncDerivative = m_system->getSampler()->getWaveFuncDerivativeAlpha();
-//        }
-
-//        if (parameterNumber == 1){
-//            waveFuncEnergy = m_system->getSampler()->getWaveFuncEnergyBeta();
-//            waveFuncDerivative = m_system->getSampler()->getWaveFuncDerivativeBeta();
-//        }
+        for (int i=0; i < numberOfParameters; i++) {
+            MPI_Reduce(&derivative[i], &m_derivativeAvg[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+            if (my_rank==0) {
+                derivative[i] = m_derivativeAvg[i]/m_system->getNumProcs();
+            }
+            MPI_Bcast(&derivative[i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        }
 
         // Find new parameter
         diff = 0;
@@ -67,29 +68,33 @@ void SteepestDescent::obtainOptimalParameter(std::vector<double> parameters, dou
         parameters = parametersNew;   // Update parameters
         iteration++;
         std::string upLine = "\e[A";
-        cout << "Iterations: " << iteration << endl;
-        for (int i=0; i < numberOfParameters; i++) {
-            cout << "Parameter " << i+1 << ": " << parameters[i] << endl;
-            upLine += "\e[A";
-        }
-        cout << upLine;             //"\033[F";
 
+        if (my_rank == 0) {
+            cout << "Iterations: " << iteration << endl;
+            for (int i=0; i < numberOfParameters; i++) {
+                cout << "Parameter " << i+1 << ": " << parameters[i] << endl;
+                upLine += "\e[A";
+            }
+            cout << upLine;             //"\033[F";
+        }
 
 
     }while(diff > tol && iteration < maxIterations);
     // Loop ends when requested tolerance for optimal parameters has been reached or after max iterations.
 
-    cout << "Total iterations: " << iteration << endl;
-    if (iteration==maxIterations) {
-        cout << "Max iterations reached.\n";
-        for (int i=0; i < numberOfParameters; i++) {
-            cout << "Parameter" << i+1 << " at max iterations: " << parameters[i] << endl;
-        }
+    if (my_rank == 0) {
+        cout << "Total iterations: " << iteration << endl;
+        if (iteration==maxIterations) {
+            cout << "Max iterations reached.\n";
+            for (int i=0; i < numberOfParameters; i++) {
+                cout << "Parameter" << i+1 << " at max iterations: " << parameters[i] << endl;
+            }
 
-    }
-    else {
-        for (int i=0; i < numberOfParameters; i++) {
-            cout << "Optimal " << "Parameter" << i+1 << ": " << parameters[i] << endl;
+        }
+        else {
+            for (int i=0; i < numberOfParameters; i++) {
+                cout << "Optimal " << "Parameter" << i+1 << ": " << parameters[i] << endl;
+            }
         }
     }
     // Performing large MC simulation with optimal parameter:
