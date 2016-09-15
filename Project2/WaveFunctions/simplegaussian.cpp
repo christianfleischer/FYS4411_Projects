@@ -50,8 +50,7 @@ double SimpleGaussian::evaluate(std::vector<class Particle*> particles) {
     //return 0;
 }
 
-std::vector<double> SimpleGaussian::computeDerivative(std::vector<class Particle*> particles,
-                                                      int randomParticle){
+std::vector<double> SimpleGaussian::computeDerivative(std::vector<class Particle*> particles){
     //Calculates ∇ψ/ψ for the non-interacting wave function using the analytical expression.
 
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -135,9 +134,5 @@ double SimpleGaussian::computeMetropolisRatio(std::vector<Particle *> particles,
     double waveFunctionNew = evaluate(particles);
 
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
-}
-
-void SimpleGaussian::updateSlaterDet(int randomParticle) {
-
 }
 

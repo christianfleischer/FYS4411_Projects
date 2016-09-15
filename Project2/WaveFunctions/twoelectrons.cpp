@@ -50,8 +50,7 @@ double TwoElectrons::evaluate(std::vector<class Particle*> particles) {
     //return 0;
 }
 
-std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*> particles,
-                                                    int randomParticle){
+std::vector<double> TwoElectrons::computeDerivative(std::vector<class Particle*> particles){
     //Calculates ∇ψ/ψ for the wave function using the analytical expression.
 
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -135,7 +134,7 @@ std::vector<double> TwoElectrons::computeDerivativeWrtParameters(std::vector<Par
     int numberOfDimensions = m_system->getNumberOfDimensions();
     assert(numberOfParticles = 2);
     //assert(numberOfDimensions) = 2;
-    double alpha = m_parameters[0];
+    //double alpha = m_parameters[0];
     double beta = m_parameters[1];
 
     double r1Squared = 0;
@@ -183,9 +182,5 @@ double TwoElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
     double waveFunctionNew = evaluate(particles);
 
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
-}
-
-void TwoElectrons::updateSlaterDet(int randomParticle) {
-
 }
 

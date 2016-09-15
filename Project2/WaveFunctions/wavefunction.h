@@ -13,10 +13,9 @@ public:
     virtual double computeDoubleDerivative(std::vector<class Particle*> particles) = 0;
     virtual double computeMetropolisRatio(std::vector<class Particle*> particles, int randomParticle,
                                           std::vector<double> positionChange) = 0;
-    virtual std::vector<double> computeDerivative(std::vector<class Particle*> particles,
-                                                  int randomParticle) = 0;
+    virtual std::vector<double> computeDerivative(std::vector<class Particle*> particles) = 0;
     virtual std::vector<double> computeDerivativeWrtParameters(std::vector<Particle *> particles) = 0;
-    virtual void updateSlaterDet(int randomParticle) = 0;
+    virtual void updateSlaterDet(int randomParticle) { randomParticle = randomParticle; }
 
 protected:
     int     m_numberOfParameters = 0;

@@ -18,8 +18,7 @@ public:
     double evaluateSingleParticleWF(int nx, int ny, double x, double y);
     double computeSPWFDoubleDerivative(int nx, int ny, double x, double y);
     double computeSPWFAlphaDerivative(int nx, int ny, double x, double y);
-    std::vector<double> computeDerivative(std::vector<class Particle*> particles,
-                                          int randomParticle);
+    std::vector<double> computeDerivative(std::vector<class Particle*> particles);
     std::vector<double> computeDerivativeWrtParameters(std::vector<Particle *> particles);
     std::vector<double> computeSlaterGradient(std::vector<Particle *> particles, int i);
     std::vector<double> computeJastrowGradient(std::vector<Particle *> particles, int i);

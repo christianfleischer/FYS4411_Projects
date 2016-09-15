@@ -45,9 +45,9 @@ double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
     double exponent = 0;
     if (m_Jastrow) {
         for (int i=0; i < m_numberOfParticles; i++) {
-            std::vector<double> r_i = m_system->getParticles()[i]->getPosition();
+            std::vector<double> r_i = particles[i]->getPosition();
             for (int j=i+1; j < m_numberOfParticles; j++) {
-                std::vector<double> r_j = m_system->getParticles()[j]->getPosition();
+                std::vector<double> r_j = particles[j]->getPosition();
                 double r_ij = (r_i[0] - r_j[0])*(r_i[0] - r_j[0]) + (r_i[1] - r_j[1])*(r_i[1] - r_j[1]);
                 r_ij = sqrt(r_ij);
                 double denom = 1+beta*r_ij;
@@ -71,11 +71,10 @@ double ManyElectrons::evaluateSingleParticleWF(int nx, int ny, double x, double 
     return waveFunction;
 }
 
-std::vector<double> ManyElectrons::computeDerivative(std::vector<class Particle*> particles,
-                                                     int randomParticle) {
+std::vector<double> ManyElectrons::computeDerivative(std::vector<class Particle*> particles) {
     //Calculates ∇ψ/ψ for the wave function.
 
-    int i = randomParticle;
+    int i = m_system->getRandomParticle();
     int numberOfParticles = m_system->getNumberOfParticles();
     int numberOfDimensions = m_system->getNumberOfDimensions();
     std::vector<double> derivative(numberOfParticles*numberOfDimensions);

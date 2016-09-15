@@ -63,8 +63,7 @@ double RepulsiveGaussian::evaluate(std::vector<class Particle*> particles) {
     //return 0;
 }
 
-std::vector<double> RepulsiveGaussian::computeDerivative(std::vector<class Particle*> particles,
-                                                         int randomParticle){
+std::vector<double> RepulsiveGaussian::computeDerivative(std::vector<class Particle*> particles){
     //Calculates ∇ψ/ψ for the interacting wave function using the analytical expression.
 
     int numberOfParticles = m_system->getNumberOfParticles();
@@ -242,9 +241,6 @@ double RepulsiveGaussian::computeMetropolisRatio(std::vector<Particle *> particl
     return waveFunctionNew*waveFunctionNew / (waveFunctionOld*waveFunctionOld);
 }
 
-void RepulsiveGaussian::updateSlaterDet(int randomParticle) {
-
-}
 
 
 

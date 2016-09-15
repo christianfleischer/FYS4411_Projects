@@ -24,6 +24,7 @@ bool System::metropolisStep() {
 
     // Choose a random particle and change its position by a random amount creating a trial state
     int randomParticle = Random::nextInt(m_numberOfParticles);
+    setRandomParticle(randomParticle);
     std::vector<double> positionChange(m_numberOfDimensions);
 
     for (int i=0; i<m_numberOfDimensions; i++){
@@ -51,6 +52,8 @@ bool System::metropolisStepImpSampling(){
 
     // Choose a random particle to change the position of
     int randomParticle = Random::nextInt(m_numberOfParticles);
+    setRandomParticle(randomParticle);
+
     std::vector<double> positionChange(m_numberOfDimensions);
     double D = 0.5;
 
@@ -59,7 +62,7 @@ bool System::metropolisStepImpSampling(){
 
     // Change position of random particle
     for (int i=0; i < m_numberOfDimensions; i++){
-        positionChange[i] = Random::nextGaussian(0., sqrt(m_dt)) + D*m_dt*quantumForce(randomParticle)[i];
+        positionChange[i] = Random::nextGaussian(0., sqrt(m_dt)) + D*m_dt*quantumForce()[i];
     }
 
     double qratio = m_waveFunction->computeMetropolisRatio(m_particles, randomParticle, positionChange);
@@ -68,13 +71,13 @@ bool System::metropolisStepImpSampling(){
     std::vector<double> positionNew = m_particles[randomParticle]->getPosition();
 
     // Evaluate Greens functions and find Metropolis-Hastings ratio:
-    double GreensFunctionNew = calculateGreensFunction(randomParticle, positionNew, positionOld);
+    double GreensFunctionNew = calculateGreensFunction(positionNew, positionOld);
 
     for (int i=0; i < m_numberOfDimensions; i++){
         m_particles[randomParticle]->adjustPosition(-positionChange[i], i);
     }
 
-    double GreensFunctionOld = calculateGreensFunction(randomParticle, positionOld, positionNew);
+    double GreensFunctionOld = calculateGreensFunction(positionOld, positionNew);
 
     qratio *= GreensFunctionNew / GreensFunctionOld;
 
@@ -90,26 +93,26 @@ bool System::metropolisStepImpSampling(){
     return false;
 }
 
-std::vector<double> System::quantumForce(int particle){
+std::vector<double> System::quantumForce(){
     // Calculate the quantum (drift) force. computeDerivative gives the gradient of the wave function
 
     std::vector<double> qForce;
 
     for (int i=0; i < m_numberOfDimensions; i++){
         qForce.push_back(
-             2*m_waveFunction->computeDerivative(m_particles, particle)[particle*m_numberOfDimensions + i]);
+             2*m_waveFunction->computeDerivative(m_particles)[m_randomParticle*m_numberOfDimensions + i]);
     }
     return qForce;
 }
 
-double System::calculateGreensFunction(int particle, std::vector<double> positionOld, std::vector<double> positionNew){
+double System::calculateGreensFunction(std::vector<double> positionOld, std::vector<double> positionNew){
     // Calculate the Greens function using the drift force from the quantumForce function
 
     double GreensFunction = 0;
     double D = 0.5;
 
     for (int i=0; i < m_numberOfDimensions; i++){
-        double tmp = positionNew[i] - positionOld[i] - D*m_dt*quantumForce(particle)[i];
+        double tmp = positionNew[i] - positionOld[i] - D*m_dt*quantumForce()[i];
         GreensFunction += tmp*tmp;
     }
 
@@ -204,10 +207,10 @@ void System::optimizeParameters(System* system, double alpha, double beta) {
 //    }
 }
 
-void System::MPI_CleanUp(double totalE, double totalKE, double totalPE,
-                         double totalVariance, double totalAcceptanceRate,
-                         double finalMeanDistance, double timeStart, double timeEnd,
-                         double totalTime, int numprocs, int numberOfSteps) {
+void System::MPI_CleanUp(double &totalE, double &totalKE, double &totalPE,
+                         double &totalVariance, double &totalAcceptanceRate,
+                         double &finalMeanDistance, double &timeStart, double &timeEnd,
+                         double &totalTime, int numprocs, int numberOfSteps) {
     double e = m_sampler->getEnergy();
     double e_k = m_sampler->getKineticEnergy();
     double e_p = m_sampler->getPotentialEnergy();
@@ -314,6 +317,10 @@ void System::setInitialState(InitialState* initialState) {
 
 void System::setNumberOfMetropolisSteps(int numberOfMetropolisSteps) {
     m_numberOfMetropolisSteps = numberOfMetropolisSteps;
+}
+
+void System::setRandomParticle(int randomParticle) {
+    m_randomParticle = randomParticle;
 }
 
 void System::setMyRank(int my_rank) {

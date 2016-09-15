@@ -5,7 +5,8 @@ Particle::Particle() {
 }
 
 void Particle::setPosition(const std::vector<double> &position) {
-    assert(position.size() == m_numberOfDimensions);
+    int size = position.size();
+    assert(size == m_numberOfDimensions);
     m_position = position;
 }
 
