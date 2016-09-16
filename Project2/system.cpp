@@ -43,6 +43,7 @@ bool System::metropolisStep() {
     for (int i=0; i<m_numberOfDimensions; i++){
         // If trial state is not accepted, revert to old position for chosen particle (revert to old state)
         m_particles[randomParticle]->adjustPosition(-positionChange[i], i);
+        m_waveFunction->updateDistances(randomParticle);
     }
 
     return false;
@@ -89,6 +90,8 @@ bool System::metropolisStepImpSampling(){
         m_waveFunction->updateSlaterDet(randomParticle);
         return true;
     }
+
+    m_waveFunction->updateDistances(randomParticle);
 
     return false;
 }

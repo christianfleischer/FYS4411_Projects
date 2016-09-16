@@ -1,6 +1,8 @@
 #ifndef PROJECT2_WAVEFUNCTION_H
 #define PROJECT2_WAVEFUNCTION_H
 #include <vector>
+#include <armadillo>
+using namespace arma;
 
 
 class WaveFunction {
@@ -16,9 +18,12 @@ public:
     virtual std::vector<double> computeDerivative(std::vector<class Particle*> particles) = 0;
     virtual std::vector<double> computeDerivativeWrtParameters(std::vector<Particle *> particles) = 0;
     virtual void updateSlaterDet(int randomParticle) { randomParticle = randomParticle; }
+    virtual void updateDistances(int randomParticle) { randomParticle = randomParticle; }
 
 protected:
     int     m_numberOfParameters = 0;
+    mat     m_distances;
+    mat     m_distancesOld;
     std::vector<double> m_parameters = std::vector<double>();
     class System* m_system = nullptr;
 };

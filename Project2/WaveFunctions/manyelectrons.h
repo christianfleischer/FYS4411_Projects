@@ -24,7 +24,9 @@ public:
     std::vector<double> computeJastrowGradient(std::vector<Particle *> particles, int i);
     std::vector<double> computeSPWFDerivative(int nx, int ny, double x, double y);
     void setUpSlaterDet();
+    void setUpDistances();
     void updateSlaterDet(int randomParticle);
+    void updateDistances(int randomParticle);
 
 private:
     int m_numberOfParticles = 0;

@@ -21,19 +21,21 @@ ManyElectrons::ManyElectrons(System* system, double alpha, double beta, double o
     m_numberOfParticles = m_system->getNumberOfParticles();
     m_halfNumberOfParticles = m_numberOfParticles/2.;
     setUpSlaterDet();
+    setUpDistances();
 }
 
 double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
     // Evaluates the wave function using brute force.
     mat spinUpSlater = zeros<mat>(m_halfNumberOfParticles, m_halfNumberOfParticles);
     mat spinDownSlater = zeros<mat>(m_halfNumberOfParticles, m_halfNumberOfParticles);
+
     double beta = m_parameters[1];
 
     for (int i=0; i < m_halfNumberOfParticles; i++) {
-        std::vector<double> rSpinUp = m_system->getParticles()[i]->getPosition();
+        std::vector<double> rSpinUp = particles[i]->getPosition();//m_system->getParticles()[i]->getPosition();
         double xSpinUp = rSpinUp[0];
         double ySpinUp = rSpinUp[1];
-        std::vector<double> rSpinDown = m_system->getParticles()[i+m_halfNumberOfParticles]->getPosition();
+        std::vector<double> rSpinDown = particles[i+m_halfNumberOfParticles]->getPosition();//m_system->getParticles()[i+m_halfNumberOfParticles]->getPosition();
         double xSpinDown = rSpinDown[0];
         double ySpinDown = rSpinDown[1];
 
@@ -48,12 +50,12 @@ double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
     double exponent = 0;
     if (m_Jastrow) {
         for (int i=0; i < m_numberOfParticles; i++) {
-            std::vector<double> r_i = particles[i]->getPosition();
+            //std::vector<double> r_i = particles[i]->getPosition();
 
             for (int j=i+1; j < m_numberOfParticles; j++) {
-                std::vector<double> r_j = particles[j]->getPosition();
-                double r_ij = (r_i[0] - r_j[0])*(r_i[0] - r_j[0]) + (r_i[1] - r_j[1])*(r_i[1] - r_j[1]);
-                r_ij = sqrt(r_ij);
+                //std::vector<double> r_j = particles[j]->getPosition();
+                //double r_ij = (r_i[0] - r_j[0])*(r_i[0] - r_j[0]) + (r_i[1] - r_j[1])*(r_i[1] - r_j[1]);
+                double r_ij = m_distances(i,j);//sqrt(r_ij);
                 double denom = 1+beta*r_ij;
                 exponent += m_a(i,j)*r_ij/denom;
             }
@@ -135,8 +137,8 @@ std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Part
 
     for (int j=0; j < k; j++) {
         std::vector<double> r_j = particles[j]->getPosition();
-        double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
-        r_kj = sqrt(r_kj);
+        double r_kj = m_distances(k,j);//(r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
+        //r_kj = sqrt(r_kj);
         double denom = 1 + beta*r_kj;
         jastrowGradient[0] += (r_k[0]-r_j[0])/r_kj * m_a(k, j)/(denom*denom);
         jastrowGradient[1] += (r_k[1]-r_j[1])/r_kj * m_a(k, j)/(denom*denom);
@@ -144,8 +146,8 @@ std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Part
 
     for (int j=k+1; j < m_numberOfParticles; j++) {
         std::vector<double> r_j = particles[j]->getPosition();
-        double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
-        r_kj = sqrt(r_kj);
+        double r_kj = m_distances(k,j);//(r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
+        //r_kj = sqrt(r_kj);
         double denom = 1 + beta*r_kj;
         jastrowGradient[0] += (r_k[0]-r_j[0])/r_kj * m_a(k, j)/(denom*denom);
         jastrowGradient[1] += (r_k[1]-r_j[1])/r_kj * m_a(k, j)/(denom*denom);
@@ -222,15 +224,15 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
 
             for (int j=0; j < k; j++) {
                 std::vector<double> r_j = particles[j]->getPosition();
-                double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
-                r_kj = sqrt(r_kj);
+                double r_kj = m_distances(k,j);//(r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
+                //r_kj = sqrt(r_kj);
                 double denom_kj = (1+beta*r_kj);
                 jastrowSum2 += (d-1)*m_a(k,j)/(r_kj*denom_kj*denom_kj) - 2*m_a(k,j)*beta/(denom_kj*denom_kj*denom_kj);
 
                 for (int i=0; i < k; i++) {
                     std::vector<double> r_i = particles[i]->getPosition();
-                    double r_ki = (r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
-                    r_ki = sqrt(r_ki);
+                    double r_ki = m_distances(k,i);//(r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
+                    //r_ki = sqrt(r_ki);
                     double denom_ki = (1+beta*r_ki);
                     double factor1 = (r_k[0]-r_i[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_j[1]);
                     factor1 /= r_ki*r_kj;
@@ -239,8 +241,8 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
                 }
                 for (int i=k+1; i < m_numberOfParticles; i++) {
                     std::vector<double> r_i = particles[i]->getPosition();
-                    double r_ki = (r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
-                    r_ki = sqrt(r_ki);
+                    double r_ki = m_distances(k,i);//(r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
+                    //r_ki = sqrt(r_ki);
                     double denom_ki = (1+beta*r_ki);
                     double factor1 = (r_k[0]-r_i[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_j[1]);
                     factor1 /= r_ki*r_kj;
@@ -250,15 +252,15 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
             }
             for (int j=k+1; j < m_numberOfParticles; j++) {
                 std::vector<double> r_j = particles[j]->getPosition();
-                double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
-                r_kj = sqrt(r_kj);
+                double r_kj = m_distances(k,j);//(r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
+                //r_kj = sqrt(r_kj);
                 double denom_kj = (1+beta*r_kj);
                 jastrowSum2 += (d-1)*m_a(k,j)/(r_kj*denom_kj*denom_kj) - 2*m_a(k,j)*beta/(denom_kj*denom_kj*denom_kj);
 
                 for (int i=0; i < k; i++) {
                     std::vector<double> r_i = particles[i]->getPosition();
-                    double r_ki = (r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
-                    r_ki = sqrt(r_ki);
+                    double r_ki = m_distances(k,i);//(r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
+                    //r_ki = sqrt(r_ki);
                     double denom_ki = (1+beta*r_ki);
                     double factor1 = (r_k[0]-r_i[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_j[1]);
                     factor1 /= r_ki*r_kj;
@@ -267,8 +269,8 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
                 }
                 for (int i=k+1; i < m_numberOfParticles; i++) {
                     std::vector<double> r_i = particles[i]->getPosition();
-                    double r_ki = (r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
-                    r_ki = sqrt(r_ki);
+                    double r_ki = m_distances(k,i);//(r_k[0]-r_i[0])*(r_k[0]-r_i[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_i[1]);
+                    //r_ki = sqrt(r_ki);
                     double denom_ki = (1+beta*r_ki);
                     double factor1 = (r_k[0]-r_i[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_i[1])*(r_k[1]-r_j[1]);
                     factor1 /= r_ki*r_kj;
@@ -355,21 +357,22 @@ std::vector<double> ManyElectrons::computeDerivativeWrtParameters(std::vector<Pa
     }
 
     double beta = m_parameters[1];
-    int numberOfDimensions = m_system->getNumberOfDimensions();
+    //int numberOfDimensions = m_system->getNumberOfDimensions();
     double exponent = 0;
     double betaDerivative = 0;
-    double r_ij = 0;
+    //double r_ij = 0;
 
     for (int i=0; i < m_numberOfParticles; i++) {
-        std::vector<double> r_i = particles[i]->getPosition();
+        //std::vector<double> r_i = particles[i]->getPosition();
 
         for (int j=i+1; j < m_numberOfParticles; j++) {
-            std::vector<double> r_j = particles[j]->getPosition();
+            //std::vector<double> r_j = particles[j]->getPosition();
 
-            for (int k=0; k < numberOfDimensions; k++) {
-                r_ij += (r_i[k]-r_j[k])*(r_i[k]-r_j[k]);
-            }
-            r_ij = sqrt(r_ij);
+            //for (int k=0; k < numberOfDimensions; k++) {
+            //    r_ij += (r_i[k]-r_j[k])*(r_i[k]-r_j[k]);
+            //}
+            //r_ij = sqrt(r_ij);
+            double r_ij = m_distances(i,j);
 
             exponent += m_a(i,j)*r_ij/(1. + beta*r_ij);
             double denom = (1+beta*r_ij);
@@ -391,12 +394,14 @@ double ManyElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
     int numberOfDimensions = m_system->getNumberOfDimensions();
 
     std::vector<double> positionOld = particles[randomParticle]->getPosition();
+    m_distancesOld = m_distances;
 
     for (int i=0; i<numberOfDimensions; i++) {
         particles[randomParticle]->adjustPosition(positionChange[i], i);
     }
 
     std::vector<double> positionNew = particles[randomParticle]->getPosition();
+    m_system->getWaveFunction()->updateDistances(randomParticle);
 
     int i = randomParticle;
     double ratioSlaterDet = 0;
@@ -423,35 +428,39 @@ double ManyElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
 
     if (m_Jastrow) {
         for (int j=0; j < i; j++) {
-            double r_ijNew = 0;
-            double r_ijOld = 0;
-            std::vector<double> r_j = particles[j]->getPosition();
+            //double r_ijNew = 0;
+            //double r_ijOld = 0;
+            //std::vector<double> r_j = particles[j]->getPosition();
 
-            for (int d=0; d < numberOfDimensions; d++) {
-                r_ijNew += (positionNew[d] - r_j[d])
-                          *(positionNew[d] - r_j[d]);
-                r_ijOld += (positionOld[d] - r_j[d])
-                          *(positionOld[d] - r_j[d]);
-            }
-            r_ijNew = sqrt(r_ijNew);
-            r_ijOld = sqrt(r_ijOld);
+            //for (int d=0; d < numberOfDimensions; d++) {
+                //r_ijNew += (positionNew[d] - r_j[d])
+                //          *(positionNew[d] - r_j[d]);
+                //r_ijOld += (positionOld[d] - r_j[d])
+                //          *(positionOld[d] - r_j[d]);
+            //}
+            //r_ijNew = sqrt(r_ijNew);
+            //r_ijOld = sqrt(r_ijOld);
+            double r_ijNew = m_distances(i,j);
+            double r_ijOld = m_distancesOld(i,j);
 
             exponent += m_a(i,j)*r_ijNew / (1. + beta*r_ijNew);
             exponent -= m_a(i,j)*r_ijOld / (1. + beta*r_ijOld);
         }
         for (int j=i+1; j < m_numberOfParticles; j++) {
-            double r_ijNew = 0;
-            double r_ijOld = 0;
-            std::vector<double> r_j = particles[j]->getPosition();
+            //double r_ijNew = 0;
+            //double r_ijOld = 0;
+            //std::vector<double> r_j = particles[j]->getPosition();
 
-            for (int d=0; d < numberOfDimensions; d++) {
-                r_ijNew += (positionNew[d] - r_j[d])
-                          *(positionNew[d] - r_j[d]);
-                r_ijOld += (positionOld[d] - r_j[d])
-                          *(positionOld[d] - r_j[d]);
-            }
-            r_ijNew = sqrt(r_ijNew);
-            r_ijOld = sqrt(r_ijOld);
+            //for (int d=0; d < numberOfDimensions; d++) {
+                //r_ijNew += (positionNew[d] - r_j[d])
+                //          *(positionNew[d] - r_j[d]);
+                //r_ijOld += (positionOld[d] - r_j[d])
+                //          *(positionOld[d] - r_j[d]);
+            //}
+            //r_ijNew = sqrt(r_ijNew);
+            //r_ijOld = sqrt(r_ijOld);
+            double r_ijNew = m_distances(i,j);
+            double r_ijOld = m_distancesOld(i,j);
 
             exponent += m_a(i,j)*r_ijNew / (1. + beta*r_ijNew);
             exponent -= m_a(i,j)*r_ijOld / (1. + beta*r_ijOld);
@@ -609,6 +618,25 @@ void ManyElectrons::setUpSlaterDet() {
     m_spinDownSlaterInverse = m_spinDownSlater.i();
 }
 
+void ManyElectrons::setUpDistances() {
+
+    m_distances = zeros<mat>(m_numberOfParticles, m_numberOfParticles);
+
+    for (int i=0; i<m_numberOfParticles; i++) {
+        std::vector<double> r_i = m_system->getInitialState()->getParticles()[i]->getPosition();
+
+        for (int j=i+1; j<m_numberOfParticles; j++) {
+            std::vector<double> r_j = m_system->getInitialState()->getParticles()[j]->getPosition();
+            double r_ij = 0;
+
+            for (int d=0; d<m_system->getNumberOfDimensions(); d++) {
+                r_ij += (r_i[d]-r_j[d])*(r_i[d]-r_j[d]);
+            }
+            m_distances(i,j) = m_distances(j,i) = sqrt(r_ij);
+        }
+    }
+}
+
 void ManyElectrons::updateSlaterDet(int randomParticle) {
     // Function for updating the Slater determinant after every accepted metropolis step.
     int i = randomParticle;
@@ -687,4 +715,31 @@ void ManyElectrons::updateSlaterDet(int randomParticle) {
             m_spinDownSlaterInverse(k, iHalf) = spinDownSlaterInverseOld(k, iHalf)/m_ratioSlaterDet;
         }
     }
+}
+
+void ManyElectrons::updateDistances(int randomParticle) {
+    // Function for updating the distances between electrons.
+    int i = randomParticle;
+    std::vector<double> r_i = m_system->getParticles()[i]->getPosition();
+
+    for (int j=0; j<i; j++) {
+        std::vector<double> r_j = m_system->getParticles()[j]->getPosition();
+        double r_ij = 0;
+
+        for (int d=0; d<m_system->getNumberOfDimensions(); d++) {
+            r_ij += (r_i[d]-r_j[d])*(r_i[d]-r_j[d]);
+        }
+        m_distances(i,j) = m_distances(j,i) = sqrt(r_ij);
+    }
+
+    for (int j=i+1; j<m_numberOfParticles; j++) {
+        std::vector<double> r_j = m_system->getParticles()[j]->getPosition();
+        double r_ij = 0;
+
+        for (int d=0; d<m_system->getNumberOfDimensions(); d++) {
+            r_ij += (r_i[d]-r_j[d])*(r_i[d]-r_j[d]);
+        }
+        m_distances(i,j) = m_distances(j,i) = sqrt(r_ij);
+    }
+
 }
