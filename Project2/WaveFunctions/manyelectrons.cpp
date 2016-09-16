@@ -30,13 +30,16 @@ double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
     double beta = m_parameters[1];
 
     for (int i=0; i < m_halfNumberOfParticles; i++) {
+        std::vector<double> rSpinUp = m_system->getParticles()[i]->getPosition();
+        double xSpinUp = rSpinUp[0];
+        double ySpinUp = rSpinUp[1];
+        std::vector<double> rSpinDown = m_system->getParticles()[i+m_halfNumberOfParticles]->getPosition();
+        double xSpinDown = rSpinDown[0];
+        double ySpinDown = rSpinDown[1];
+
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             int nx = m_quantumNumbers(j, 0);
             int ny = m_quantumNumbers(j, 1);
-            double xSpinUp = m_system->getParticles()[i]->getPosition()[0];
-            double ySpinUp = m_system->getParticles()[i]->getPosition()[1];
-            double xSpinDown = m_system->getParticles()[i+m_halfNumberOfParticles]->getPosition()[0];
-            double ySpinDown = m_system->getParticles()[i+m_halfNumberOfParticles]->getPosition()[1];
             spinUpSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinUp, ySpinUp);
             spinDownSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinDown, ySpinDown);
         }
@@ -46,6 +49,7 @@ double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
     if (m_Jastrow) {
         for (int i=0; i < m_numberOfParticles; i++) {
             std::vector<double> r_i = particles[i]->getPosition();
+
             for (int j=i+1; j < m_numberOfParticles; j++) {
                 std::vector<double> r_j = particles[j]->getPosition();
                 double r_ij = (r_i[0] - r_j[0])*(r_i[0] - r_j[0]) + (r_i[1] - r_j[1])*(r_i[1] - r_j[1]);
@@ -127,9 +131,9 @@ std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Part
     jastrowGradient[0] = jastrowGradient[1] = 0;
 
     double beta = m_parameters[1];
+    std::vector<double> r_k = particles[k]->getPosition();
 
     for (int j=0; j < k; j++) {
-        std::vector<double> r_k = particles[k]->getPosition();
         std::vector<double> r_j = particles[j]->getPosition();
         double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
         r_kj = sqrt(r_kj);
@@ -139,7 +143,6 @@ std::vector<double> ManyElectrons::computeJastrowGradient(std::vector<class Part
     }
 
     for (int j=k+1; j < m_numberOfParticles; j++) {
-        std::vector<double> r_k = particles[k]->getPosition();
         std::vector<double> r_j = particles[j]->getPosition();
         double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
         r_kj = sqrt(r_kj);
@@ -185,20 +188,24 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
     double crossTerm = 0;
 
     for (int i=0; i < m_halfNumberOfParticles; i++) {
+        std::vector<double> r_i = particles[i]->getPosition();
+        double x = r_i[0];
+        double y = r_i[1];
+
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             int nx = m_quantumNumbers(j, 0);
             int ny = m_quantumNumbers(j, 1);
-            double x = particles[i]->getPosition()[0];
-            double y = particles[i]->getPosition()[1];
             slaterLaplacian += computeSPWFDoubleDerivative(nx, ny, x, y)*m_spinUpSlaterInverse(j,i);
         }
     }
     for (int i=m_halfNumberOfParticles; i < m_numberOfParticles; i++) {
+        std::vector<double> r_i = particles[i]->getPosition();
+        double x = r_i[0];
+        double y = r_i[1];
+
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             int nx = m_quantumNumbers(j, 0);
             int ny = m_quantumNumbers(j, 1);
-            double x = particles[i]->getPosition()[0];
-            double y = particles[i]->getPosition()[1];
             slaterLaplacian += computeSPWFDoubleDerivative(nx, ny, x, y)
                               *m_spinDownSlaterInverse(j,i-m_halfNumberOfParticles);
         }
@@ -212,6 +219,7 @@ double ManyElectrons::computeDoubleDerivative(std::vector<class Particle*> parti
 
         for (int k=0; k < m_numberOfParticles; k++) {
             std::vector<double> r_k = particles[k]->getPosition();
+
             for (int j=0; j < k; j++) {
                 std::vector<double> r_j = particles[j]->getPosition();
                 double r_kj = (r_k[0]-r_j[0])*(r_k[0]-r_j[0]) + (r_k[1]-r_j[1])*(r_k[1]-r_j[1]);
@@ -329,13 +337,16 @@ std::vector<double> ManyElectrons::computeDerivativeWrtParameters(std::vector<Pa
     double slaterDownAlphaDerivative = 0;
 
     for (int i=0; i < m_halfNumberOfParticles; i++) {
+        std::vector<double> rSpinUp = particles[i]->getPosition();
+        double xSpinUp = rSpinUp[0];
+        double ySpinUp = rSpinUp[1];
+        std::vector<double> rSpinDown = particles[i+m_halfNumberOfParticles]->getPosition();
+        double xSpinDown = rSpinDown[0];
+        double ySpinDown = rSpinDown[1];
+
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             int nx = m_quantumNumbers(j, 0);
             int ny = m_quantumNumbers(j, 1);
-            double xSpinUp = particles[i]->getPosition()[0];
-            double ySpinUp = particles[i]->getPosition()[1];
-            double xSpinDown = particles[i+m_halfNumberOfParticles]->getPosition()[0];
-            double ySpinDown = particles[i+m_halfNumberOfParticles]->getPosition()[1];
             slaterUpAlphaDerivative += computeSPWFAlphaDerivative(nx, ny, xSpinUp, ySpinUp)
                                        *m_spinUpSlaterInverse(j,i);
             slaterDownAlphaDerivative += computeSPWFAlphaDerivative(nx, ny, xSpinDown, ySpinDown)
@@ -351,8 +362,10 @@ std::vector<double> ManyElectrons::computeDerivativeWrtParameters(std::vector<Pa
 
     for (int i=0; i < m_numberOfParticles; i++) {
         std::vector<double> r_i = particles[i]->getPosition();
+
         for (int j=i+1; j < m_numberOfParticles; j++) {
             std::vector<double> r_j = particles[j]->getPosition();
+
             for (int k=0; k < numberOfDimensions; k++) {
                 r_ij += (r_i[k]-r_j[k])*(r_i[k]-r_j[k]);
             }
@@ -412,11 +425,13 @@ double ManyElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
         for (int j=0; j < i; j++) {
             double r_ijNew = 0;
             double r_ijOld = 0;
+            std::vector<double> r_j = particles[j]->getPosition();
+
             for (int d=0; d < numberOfDimensions; d++) {
-                r_ijNew += (positionNew[d] - particles[j]->getPosition()[d])
-                          *(positionNew[d] - particles[j]->getPosition()[d]);
-                r_ijOld += (positionOld[d] - particles[j]->getPosition()[d])
-                          *(positionOld[d] - particles[j]->getPosition()[d]);
+                r_ijNew += (positionNew[d] - r_j[d])
+                          *(positionNew[d] - r_j[d]);
+                r_ijOld += (positionOld[d] - r_j[d])
+                          *(positionOld[d] - r_j[d]);
             }
             r_ijNew = sqrt(r_ijNew);
             r_ijOld = sqrt(r_ijOld);
@@ -427,11 +442,13 @@ double ManyElectrons::computeMetropolisRatio(std::vector<Particle *> particles,
         for (int j=i+1; j < m_numberOfParticles; j++) {
             double r_ijNew = 0;
             double r_ijOld = 0;
+            std::vector<double> r_j = particles[j]->getPosition();
+
             for (int d=0; d < numberOfDimensions; d++) {
-                r_ijNew += (positionNew[d] - particles[j]->getPosition()[d])
-                          *(positionNew[d] - particles[j]->getPosition()[d]);
-                r_ijOld += (positionOld[d] - particles[j]->getPosition()[d])
-                          *(positionOld[d] - particles[j]->getPosition()[d]);
+                r_ijNew += (positionNew[d] - r_j[d])
+                          *(positionNew[d] - r_j[d]);
+                r_ijOld += (positionOld[d] - r_j[d])
+                          *(positionOld[d] - r_j[d]);
             }
             r_ijNew = sqrt(r_ijNew);
             r_ijOld = sqrt(r_ijOld);
@@ -453,14 +470,14 @@ double ManyElectrons::computeHermitePolynomial(int nValue, double position) {
     double alpha = m_parameters[0];
     double alphaSqrt = sqrt(alpha);
     double omegaSqrt = sqrt(m_omega);
-    double variable = alphaSqrt*omegaSqrt*position;
+    double factor = 2*alphaSqrt*omegaSqrt*position;
 
     double HermitePolynomialPP = 0;                 // H_{n-2}
     double HermitePolynomialP = 1;                  // H_{n-1}
     double HermitePolynomial = HermitePolynomialP;  // H_n
 
     for (int n=1; n <= nValue; n++) {
-        HermitePolynomial = 2*variable*HermitePolynomialP - 2*(n-1)*HermitePolynomialPP;
+        HermitePolynomial = factor*HermitePolynomialP - 2*(n-1)*HermitePolynomialPP;
         HermitePolynomialPP = HermitePolynomialP;
         HermitePolynomialP = HermitePolynomial;
     }
@@ -474,14 +491,16 @@ double ManyElectrons::computeHermitePolynomialDerivative(int nValue, double posi
     double alpha = m_parameters[0];
     double alphaSqrt = sqrt(alpha);
     double omegaSqrt = sqrt(m_omega);
+    double factor1 = 2*alphaSqrt*omegaSqrt;
+    double factor2 = 2*alphaSqrt*omegaSqrt*position;
 
     double HPDerivativePP = 0;              // d/dx H_{n-2}
     double HPDerivativeP = 0;               // d/dx H_{n-1}
     double HPDerivative = HPDerivativeP;    // d/dx H_n
 
     for (int n=1; n <= nValue; n++) {
-        HPDerivative = 2*alphaSqrt*omegaSqrt*computeHermitePolynomial(n-1, position)
-                      +2*alphaSqrt*omegaSqrt*position*HPDerivativeP
+        HPDerivative = factor1*computeHermitePolynomial(n-1, position)
+                      +factor2*HPDerivativeP
                       -2*(n-1)*HPDerivativePP;
         HPDerivativePP = HPDerivativeP;
         HPDerivativeP = HPDerivative;
@@ -496,14 +515,16 @@ double ManyElectrons::computeHermitePolynomialDoubleDerivative(int nValue, doubl
     double alpha = m_parameters[0];
     double alphaSqrt = sqrt(alpha);
     double omegaSqrt = sqrt(m_omega);
+    double factor1 = 4*alphaSqrt*omegaSqrt;
+    double factor2 = 2*alphaSqrt*omegaSqrt*position;
 
     double HPDoubleDerivativePP = 0;                    // d/dx d/dx H_{n-2}
     double HPDoubleDerivativeP = 0;                     // d/dx d/dx H_{n-1}
     double HPDoubleDerivative = HPDoubleDerivativeP;    // d/dx d/dx H_n
 
     for (int n=1; n <= nValue; n++) {
-        HPDoubleDerivative = 4*alphaSqrt*omegaSqrt*computeHermitePolynomialDerivative(n-1, position)
-                            +2*alphaSqrt*omegaSqrt*position*HPDoubleDerivativeP
+        HPDoubleDerivative = factor1*computeHermitePolynomialDerivative(n-1, position)
+                            +factor2*HPDoubleDerivativeP
                             -2*(n-1)*HPDoubleDerivativePP;
         HPDoubleDerivativePP = HPDoubleDerivativeP;
         HPDoubleDerivativeP = HPDoubleDerivative;
@@ -518,14 +539,16 @@ double ManyElectrons::computeHermitePolynomialAlphaDerivative(int nValue, double
     double alpha = m_parameters[0];
     double alphaSqrt = sqrt(alpha);
     double omegaSqrt = sqrt(m_omega);
+    double factor1 = omegaSqrt/alphaSqrt*position;
+    double factor2 = 2*alphaSqrt*omegaSqrt*position;
 
     double HPDerivativePP = 0;              // d/dα H_{n-2}
     double HPDerivativeP = 0;               // d/dα H_{n-1}
     double HPDerivative = HPDerivativeP;    // d/dα H_n
 
     for (int n=1; n <= nValue; n++) {
-        HPDerivative = omegaSqrt/alphaSqrt*position*computeHermitePolynomial(n-1, position)
-                      +2*alphaSqrt*omegaSqrt*position*HPDerivativeP
+        HPDerivative = factor1*computeHermitePolynomial(n-1, position)
+                      +factor2*HPDerivativeP
                       -2*(n-1)*HPDerivativePP;
         HPDerivativePP = HPDerivativeP;
         HPDerivativeP = HPDerivative;
@@ -540,6 +563,7 @@ void ManyElectrons::setUpSlaterDet() {
     int nx = 0;
     int ny = 0;
     m_quantumNumbers = zeros<mat>(m_halfNumberOfParticles, 2);
+
     for (int p=0; p < m_halfNumberOfParticles; p++) {
         m_quantumNumbers(p, 0) = nx;    m_quantumNumbers(p, 1) = ny;
         if (ny == n) {
@@ -566,13 +590,16 @@ void ManyElectrons::setUpSlaterDet() {
     m_spinDownSlater = zeros<mat>(m_halfNumberOfParticles, m_halfNumberOfParticles);
 
     for (int i=0; i < m_halfNumberOfParticles; i++) {
+        std::vector<double> rSpinUp = m_system->getInitialState()->getParticles()[i]->getPosition();
+        double xSpinUp = rSpinUp[0];
+        double ySpinUp = rSpinUp[1];
+        std::vector<double> rSpinDown = m_system->getInitialState()->getParticles()[i+m_halfNumberOfParticles]->getPosition();
+        double xSpinDown = rSpinDown[0];
+        double ySpinDown = rSpinDown[1];
+
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             nx = m_quantumNumbers(j, 0);
             ny = m_quantumNumbers(j, 1);
-            double xSpinUp = m_system->getInitialState()->getParticles()[i]->getPosition()[0];
-            double ySpinUp = m_system->getInitialState()->getParticles()[i]->getPosition()[1];
-            double xSpinDown = m_system->getInitialState()->getParticles()[i+m_halfNumberOfParticles]->getPosition()[0];
-            double ySpinDown = m_system->getInitialState()->getParticles()[i+m_halfNumberOfParticles]->getPosition()[1];
             m_spinUpSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinUp, ySpinUp);
             m_spinDownSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinDown, ySpinDown);
         }
@@ -589,8 +616,10 @@ void ManyElectrons::updateSlaterDet(int randomParticle) {
 
     if (i < m_halfNumberOfParticles) {
         mat spinUpSlaterInverseOld = m_spinUpSlaterInverse;
+
         for (int j=0; j < i; j++) {
             double sum = 0;
+
             for (int l=0; l <m_halfNumberOfParticles; l++) {
                 int nx = m_quantumNumbers(l, 0);
                 int ny = m_quantumNumbers(l, 1);
@@ -604,6 +633,7 @@ void ManyElectrons::updateSlaterDet(int randomParticle) {
         }
         for (int j=i+1; j < m_halfNumberOfParticles; j++) {
             double sum = 0;
+
             for (int l=0; l <m_halfNumberOfParticles; l++) {
                 int nx = m_quantumNumbers(l, 0);
                 int ny = m_quantumNumbers(l, 1);
@@ -622,8 +652,10 @@ void ManyElectrons::updateSlaterDet(int randomParticle) {
     else {
         double iHalf = i-m_halfNumberOfParticles;
         mat spinDownSlaterInverseOld = m_spinDownSlaterInverse;
+
         for (int j=0; j < iHalf; j++) {
             double sum = 0;
+
             for (int l=0; l < m_halfNumberOfParticles; l++) {
                 int nx = m_quantumNumbers(l, 0);
                 int ny = m_quantumNumbers(l, 1);
@@ -638,6 +670,7 @@ void ManyElectrons::updateSlaterDet(int randomParticle) {
         }
         for (int j=iHalf+1; j < m_halfNumberOfParticles; j++) {
             double sum = 0;
+
             for (int l=0; l < m_halfNumberOfParticles; l++) {
                 int nx = m_quantumNumbers(l, 0);
                 int ny = m_quantumNumbers(l, 1);
