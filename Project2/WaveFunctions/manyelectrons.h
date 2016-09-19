@@ -20,13 +20,16 @@ public:
     double computeSPWFAlphaDerivative(int nx, int ny, double x, double y);
     std::vector<double> computeDerivative(std::vector<class Particle*> particles);
     std::vector<double> computeDerivativeWrtParameters(std::vector<Particle *> particles);
-    std::vector<double> computeSlaterGradient(std::vector<Particle *> particles, int i);
+    std::vector<double> computeSlaterGradient(/*std::vector<Particle *> particles, */int i);
     std::vector<double> computeJastrowGradient(std::vector<Particle *> particles, int i);
     std::vector<double> computeSPWFDerivative(int nx, int ny, double x, double y);
     void setUpSlaterDet();
     void setUpDistances();
+    void setUpJastrowMat();
     void updateSlaterDet(int randomParticle);
     void updateDistances(int randomParticle);
+    void updateSPWFMat(int randomParticle);
+    void updateJastrow(int randomParticle);
 
 private:
     int m_numberOfParticles = 0;
@@ -41,6 +44,15 @@ private:
     mat m_spinDownSlater;
     mat m_spinUpSlaterInverse;
     mat m_spinDownSlaterInverse;
+    mat m_distances;
+    mat m_distancesOld;
+    mat m_SPWFMat;
+    field<vec> m_SPWFDMat;
+    mat m_SPWFDDMat;
+    cube m_JastrowMat;
+    cube m_JastrowMatOld;
+    mat m_JastrowGrad;
+    mat m_JastrowGradOld;
     mat m_a;
     bool m_Jastrow = false;
 };

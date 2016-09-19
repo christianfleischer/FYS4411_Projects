@@ -25,11 +25,15 @@ double Hamiltonian::computeKineticEnergy(std::vector<Particle*> particles){
             // Evaluate wave function at forward step
             particles[i]->adjustPosition(h, j);
             m_system->getWaveFunction()->updateDistances(i);
+            m_system->getWaveFunction()->updateSPWFMat(i);
+            m_system->getWaveFunction()->updateJastrow(i);
             double waveFunctionPlus = m_system->getWaveFunction()->evaluate(particles);
 
             // Evaluate wave function at backward step
             particles[i]->adjustPosition(-2*h, j);
             m_system->getWaveFunction()->updateDistances(i);
+            m_system->getWaveFunction()->updateSPWFMat(i);
+            m_system->getWaveFunction()->updateJastrow(i);
             double waveFunctionMinus = m_system->getWaveFunction()->evaluate(particles);
 
             // Part of numerical diff
@@ -38,6 +42,8 @@ double Hamiltonian::computeKineticEnergy(std::vector<Particle*> particles){
             // Move particles back to original position
             particles[i]->adjustPosition(h, j);
             m_system->getWaveFunction()->updateDistances(i);
+            m_system->getWaveFunction()->updateSPWFMat(i);
+            m_system->getWaveFunction()->updateJastrow(i);
         }
     }
     // Other part of numerical diff. Also divide by evaluation of current wave function

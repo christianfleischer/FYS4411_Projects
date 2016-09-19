@@ -44,6 +44,8 @@ bool System::metropolisStep() {
         // If trial state is not accepted, revert to old position for chosen particle (revert to old state)
         m_particles[randomParticle]->adjustPosition(-positionChange[i], i);
         m_waveFunction->updateDistances(randomParticle);
+        m_waveFunction->updateSPWFMat(randomParticle);
+        m_waveFunction->updateJastrow(randomParticle);
     }
 
     return false;
@@ -92,6 +94,8 @@ bool System::metropolisStepImpSampling(){
     }
 
     m_waveFunction->updateDistances(randomParticle);
+    m_waveFunction->updateSPWFMat(randomParticle);
+    m_waveFunction->updateJastrow(randomParticle);
 
     return false;
 }
