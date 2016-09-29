@@ -12,6 +12,8 @@ ManyElectrons::ManyElectrons(System* system, double alpha, double beta, double o
     assert(omega > 0);
     m_omega = omega;
     assert(alpha >= 0);
+    //m_alpha = alpha;
+    //m_alphaOmega = m_alpha*m_omega;
     m_Jastrow = Jastrow;
     m_numberOfParameters = 2;
     m_parameters.reserve(2);
@@ -70,11 +72,11 @@ double ManyElectrons::evaluate(std::vector<class Particle*> particles) {
 
 double ManyElectrons::evaluateSingleParticleWF(int nx, int ny, double x, double y) {
     // Calculates the single particle wave function.
-    double alpha = m_parameters[0];
+    //double alpha = m_parameters[0];
 
     double waveFunction = computeHermitePolynomial(nx, x)
                          *computeHermitePolynomial(ny, y)
-                         *exp(-m_omega*alpha*(x*x + y*y)*0.5);
+                         *m_expFactor;//exp(-m_omega*alpha*(x*x + y*y)*0.5);
     return waveFunction;
 }
 
@@ -162,13 +164,13 @@ std::vector<double> ManyElectrons::computeSPWFDerivative(int nx, int ny, double 
     // Calculates the single particle wave function differentiated w.r.t. position.
     std::vector<double> derivative(m_system->getNumberOfDimensions());
     double alpha = m_parameters[0];
-    double r2 = x*x + y*y;
+    //double r2 = x*x + y*y;
 
     derivative[0] = (computeHermitePolynomialDerivative(nx, x) - alpha*m_omega*x*computeHermitePolynomial(nx, x))
-                   *computeHermitePolynomial(ny, y)*exp(-alpha*m_omega*r2*0.5);
+                   *computeHermitePolynomial(ny, y)*m_expFactor;//exp(-alpha*m_omega*r2*0.5);
 
     derivative[1] = (computeHermitePolynomialDerivative(ny, y) - alpha*m_omega*y*computeHermitePolynomial(ny, y))
-                   *computeHermitePolynomial(nx, x)*exp(-alpha*m_omega*r2*0.5);
+                   *computeHermitePolynomial(nx, x)*m_expFactor;//exp(-alpha*m_omega*r2*0.5);
 
     return derivative;
 }
@@ -300,19 +302,19 @@ double ManyElectrons::computeSPWFDoubleDerivative(int nx, int ny, double x, doub
     // Calculates the single particle wave function twice differentiated w.r.t. position.
     double doubleDerivative = 0;
     double alpha = m_parameters[0];
-    double r2 = x*x + y*y;
+    //double r2 = x*x + y*y;
 
-    doubleDerivative += computeHermitePolynomial(ny, y)*exp(-alpha*m_omega*r2*0.5)
+    doubleDerivative += computeHermitePolynomial(ny, y)*m_expFactor//exp(-alpha*m_omega*r2*0.5)
                        *(computeHermitePolynomialDoubleDerivative(nx, x)
                          - alpha*m_omega*computeHermitePolynomial(nx, x)
                          - 2*alpha*m_omega*x*computeHermitePolynomialDerivative(nx, x)
-                         + alpha*alpha*m_omega*m_omega*x*x*computeHermitePolynomial(nx, x));
+                         + alpha*m_omega*alpha*m_omega*x*x*computeHermitePolynomial(nx, x));
 
-    doubleDerivative += computeHermitePolynomial(nx, x)*exp(-alpha*m_omega*r2*0.5)
+    doubleDerivative += computeHermitePolynomial(nx, x)*m_expFactor//exp(-alpha*m_omega*r2*0.5)
                        *(computeHermitePolynomialDoubleDerivative(ny, y)
                          - alpha*m_omega*computeHermitePolynomial(ny, y)
                          - 2*alpha*m_omega*y*computeHermitePolynomialDerivative(ny, y)
-                         + alpha*alpha*m_omega*m_omega*y*y*computeHermitePolynomial(ny, y));
+                         + alpha*m_omega*alpha*m_omega*y*y*computeHermitePolynomial(ny, y));
 
     return doubleDerivative;
 
@@ -606,6 +608,7 @@ void ManyElectrons::setUpSlaterDet() {
     m_SPWFDMat = field<vec>(m_numberOfParticles, m_halfNumberOfParticles);
     m_SPWFDDMat = zeros<mat>(m_numberOfParticles, m_halfNumberOfParticles);
 
+    double alpha = m_parameters[0];
     int numberOfDimensions = m_system->getNumberOfDimensions();
     for (int i=0; i<m_numberOfParticles; i++) {
         for (int j=0; j<m_halfNumberOfParticles; j++) {
@@ -624,16 +627,19 @@ void ManyElectrons::setUpSlaterDet() {
         for (int j=0; j < m_halfNumberOfParticles; j++) {
             nx = m_quantumNumbers(j, 0);
             ny = m_quantumNumbers(j, 1);
+
+            m_expFactor = exp(-alpha*m_omega*(xSpinUp*xSpinUp + ySpinUp*ySpinUp)*0.5);
             m_spinUpSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinUp, ySpinUp);
-            m_spinDownSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinDown, ySpinDown);
 
             m_SPWFMat(i,j) = m_spinUpSlater(i,j);
-            m_SPWFMat(i+m_halfNumberOfParticles, j) = m_spinDownSlater(i,j);
-
             m_SPWFDMat(i,j) = computeSPWFDerivative(nx, ny, xSpinUp, ySpinUp);
-            m_SPWFDMat(i+m_halfNumberOfParticles,j) = computeSPWFDerivative(nx, ny, xSpinDown, ySpinDown);
-
             m_SPWFDDMat(i,j) = computeSPWFDoubleDerivative(nx, ny, xSpinUp, ySpinUp);
+
+            m_expFactor = exp(-alpha*m_omega*(xSpinDown*xSpinDown + ySpinDown*ySpinDown)*0.5);
+            m_spinDownSlater(i,j) = evaluateSingleParticleWF(nx, ny, xSpinDown, ySpinDown);
+
+            m_SPWFMat(i+m_halfNumberOfParticles, j) = m_spinDownSlater(i,j);
+            m_SPWFDMat(i+m_halfNumberOfParticles,j) = computeSPWFDerivative(nx, ny, xSpinDown, ySpinDown);
             m_SPWFDDMat(i+m_halfNumberOfParticles,j) = computeSPWFDoubleDerivative(nx, ny, xSpinDown, ySpinDown);
 
         }
@@ -805,6 +811,8 @@ void ManyElectrons::updateSPWFMat(int randomParticle) {
 
     int i = randomParticle;
     std::vector<double> r_i = m_system->getParticles()[i]->getPosition();
+    double alpha = m_parameters[0];
+    m_expFactor = exp(-alpha*m_omega*(r_i[0]*r_i[0] + r_i[1]*r_i[1])*0.5);
 
     for (int j=0; j<m_halfNumberOfParticles; j++) {
         int nx = m_quantumNumbers(j, 0);

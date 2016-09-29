@@ -36,9 +36,12 @@ private:
     int m_halfNumberOfParticles = 0;
     int m_k = 0;
     double m_omega = 0;
+    double m_alpha = 0;
+    double m_alphaOmega = 0;
     double m_C = 0;
     double m_metropolisRatio = 0;
     double m_ratioSlaterDet = 0;
+    double m_expFactor;
     mat m_quantumNumbers;
     mat m_spinUpSlater;
     mat m_spinDownSlater;

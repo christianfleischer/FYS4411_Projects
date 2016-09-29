@@ -64,6 +64,8 @@ void SteepestDescent::obtainOptimalParameter(std::vector<double> parameters, dou
             parametersNew[i] = parameters[i] - derivative[i]*m_stepLengthSD;
             diff += abs(parametersNew[i] - parameters[i]);
         }
+        //m_stepLengthSD *= 0.8;
+
         //parametersNew = parameters - derivative*m_stepLengthSD;
         parameters = parametersNew;   // Update parameters
         iteration++;

@@ -34,7 +34,7 @@ int main(int nargs, char* args[]) {
     timeStart = MPI_Wtime();
 
     int numberOfDimensions  = 2;
-    int numberOfParticles   = 6;
+    int numberOfParticles   = 2;
     int numberOfSteps       = (int) 1e6;    // Monte Carlo cycles
     double omega            = 1.;           // Oscillator frequency.
     double alpha            = 0.98456;//0.7;          // Variational parameter.
@@ -52,7 +52,7 @@ int main(int nargs, char* args[]) {
     bool quantumDots        = true;         // Switch for quantum dot system.
     bool twobodyQD          = false;        // Switch for twobody quantum dot system. (no Slater)
     bool Jastrow            = true;         // Switch for Jastrow factor. (manybody qdot)
-    bool optimizeParameters = false;        // Switch for optimizing variational parameters.
+    bool optimizeParameters = true;        // Switch for optimizing variational parameters.
     bool saveEnergies       = false;
     bool savePositions      = false;
     bool showProgress       = true;
